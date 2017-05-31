@@ -1,9 +1,11 @@
 package com.a91zsc.www.myapplication.view;
 
 import android.app.Activity;
+import android.app.DownloadManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -13,6 +15,11 @@ import android.widget.TextView;
 import de.tavendo.autobahn.WebSocketConnection;
 import de.tavendo.autobahn.WebSocketException;
 import de.tavendo.autobahn.WebSocketHandler;
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
@@ -27,6 +34,7 @@ import android.widget.Toast;
 import com.a91zsc.www.myapplication.R;
 import com.a91zsc.www.myapplication.action.PrintDataAction;
 import com.a91zsc.www.myapplication.service.PrintDataService;
+
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 
@@ -34,11 +42,6 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-
-import java.util.Objects;
 
 public class PrintDataActivity extends AppCompatActivity  {
     public static final int takeaway = 0;
@@ -166,7 +169,7 @@ public class PrintDataActivity extends AppCompatActivity  {
 
             @Override
             public void onClick(View v) {
-                wsC.sendTextMessage("服务器正常");
+                wsC.sendTextMessage("服务器正常"+"\n\n\n\n");
                 new Thread(new Runnable() {
                     public void run() {
 
@@ -268,7 +271,7 @@ public class PrintDataActivity extends AppCompatActivity  {
 //########################################socket相关########################################//
 
     private final String TAG = "PrintDataActivity";
-    public static String wsUrl = "ws://third.91zsc.com:2345"; // TODO: 运行时替换ip port
+    public static String wsUrl = "ws://www.91zsc.com:2345"; // TODO: 运行时替换ip port
     public WebSocketConnection wsC = new WebSocketConnection();
 
     /*TextView deviceName = (TextView) this.findViewById(R.id.device_name);
@@ -329,29 +332,65 @@ public class PrintDataActivity extends AppCompatActivity  {
                                 JSONObject jsonObject = JSONObject.fromObject(payload);
                                 JSONObject order = jsonObject.getJSONObject("order");
                                 String order_type = order.getString("order_type");
-                                switch (order_type){
-                                    case "外卖":
-                                        Message msg = new Message();
-                                        msg.what = takeaway;
-                                        msg.obj = payload;
-                                        handler.sendMessage(msg);
-                                        break;
-                                    case "店内点餐":
-                                        Message msg1 = new Message();
-                                        msg1.what = shopMeal;
-                                        msg1.obj = payload;
-                                        handler.sendMessage(msg1);
-                                        break;
-                                    case "预订到店":
-                                        Message msg2 = new Message();
-                                        msg2.what = booked;
-                                        msg2.obj = payload;
-                                        handler.sendMessage(msg2);
-                                        break;
-                                    default:
-                                        System.out.println("default");
-                                        break;
+                                //String msg_service = order.getString("msg");
+                                if(order.has("msg")){
+                                    String msg_service = order.getString("msg");
+
+                                    switch (order_type){
+                                        case "ready":ready(msg_service);
+                                            break;
+                                        case "docking":docking(msg_service);
+                                            break;
+                                        case "bind":bind(msg_service);
+                                            break;
+                                        case "test":ready(msg_service);
+                                            break;
+                                        default:
+                                            System.out.println("default");
+                                            break;
+                                    }
+                                }else {
+                                    switch (order_type){
+                                        case "外卖":
+                                            Message msg = new Message();
+                                            msg.what = takeaway;
+                                            msg.obj = payload;
+                                            handler.sendMessage(msg);
+                                            break;
+                                        case "店内点餐":
+                                            Message msg1 = new Message();
+                                            msg1.what = shopMeal;
+                                            msg1.obj = payload;
+                                            handler.sendMessage(msg1);
+                                            break;
+                                        case "预订到店":
+                                            Message msg2 = new Message();
+                                            msg2.what = booked;
+                                            msg2.obj = payload;
+                                            handler.sendMessage(msg2);
+                                            break;
+                                        default:
+                                            System.out.println("default");
+                                            break;
+                                    }
                                 }
+
+                                //String type = jsonObject.getString("type");
+                                //String msgi = jsonObject.getString("msg");
+
+                                /*switch (type){
+                                    case "ready":ready(msgi);
+                                        break;
+                                    case "docking":docking(msgi);
+                                        break;
+                                    case "bind":bind(msgi);
+                                        break;
+                                    //case "test":bind(msgi);
+                                        //break;
+                                    default:System.out.println("default");
+                                        break;
+                                }*/
+
                             }
 
 
@@ -367,6 +406,47 @@ public class PrintDataActivity extends AppCompatActivity  {
         }.start();
     }
 
+    public void ready(String msg){
+        printDataAction.printDataService.sendInfo(msg+"\n");
+    }
+
+    public void docking(String msg){
+        printDataAction.printDataService.sendInfo(msg+"\n");
+    }
+
+    public void test(String msg){
+        printDataAction.printDataService.sendInfo(msg+"\n\n\n\n");
+    }
+
+    public void bind(String msg){
+        SharedPreferences pref = getSharedPreferences("data",MODE_PRIVATE);
+        final String account = pref.getString("acc","");
+        final String client_id = msg;
+
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    OkHttpClient client = new OkHttpClient();
+                    RequestBody requestBody = new FormBody.Builder()
+                            .add("account",account)
+                            .add("client_id",client_id)
+                            .build();
+                    Request request = new Request.Builder()
+                            .url("https://www.91zsc.com/Home/Print/bind")
+                            .post(requestBody)
+                            .build();
+                    Response response = client.newCall(request).execute();
+                    String responseData = response.body().string();
+                    Log.e("PrintDataActivity",responseData);
+                    printDataAction.printDataService.sendInfo(account+" 绑定成功 "+client_id+"\n\n\n\n");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    printDataAction.printDataService.sendInfo(account+" 绑定失败 "+client_id+"\n\n\n\n");
+                }
+            }
+        }).start();
+    }
 
     //解析order数据进行 发送
 

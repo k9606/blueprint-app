@@ -56,7 +56,7 @@ public class PrintDataAction implements OnClickListener {
         if (v.getId() == R.id.send) {
             String sendData = this.printData.getText().toString();
             //send();
-            this.printDataService.sendInfo(sendData + "\n\n\n\n");
+            this.printDataService.sendInfo("打印机正常" + "\n\n\n\n");
         } else if (v.getId() == R.id.command) {
             this.printDataService.selectCommand();
 

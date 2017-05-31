@@ -14,6 +14,12 @@ import android.widget.Toast;
 
 import com.a91zsc.www.myapplication.R;
 
+import okhttp3.FormBody;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
 public class LoginActivity extends AppCompatActivity {
 
     private EditText accountEdit;
@@ -49,25 +55,64 @@ public class LoginActivity extends AppCompatActivity {
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                SharedPreferences.Editor editor1 = getSharedPreferences("data",MODE_PRIVATE).edit();
-                String account = accountEdit.getText().toString();
-                String password = passwordEdit.getText().toString();
-                // 如果账号是admin且密码是123456，就认为登录成功
-                if (account.equals("admin") && password.equals("123456")) {
-                    //editor1 = pref.edit();
+                //SharedPreferences.Editor editor1 = getSharedPreferences("data",MODE_PRIVATE).edit();
+                final String account = accountEdit.getText().toString();
+                final String password = passwordEdit.getText().toString();
 
-                    editor1.putString("acc", account);
-                    editor1.putString("password", password);
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            OkHttpClient client = new OkHttpClient();
+                            RequestBody requestBody = new FormBody.Builder()
+                                    .add("account",account)
+                                    .add("password",password)
+                                    .build();
+                            Request request = new Request.Builder()
+                                    .url("https://www.91zsc.com/Home/Print/login")
+                                    .post(requestBody)
+                                    .build();
+                            Response response = client.newCall(request).execute();
+                            String responseData = response.body().string();
+                            //Log.e("login",responseData);
+                            if(responseData.equals("oo")){
+                                Log.e("loginoo",responseData);
+                                SharedPreferences.Editor editor1 = getSharedPreferences("data",MODE_PRIVATE).edit();
+                                editor1.putString("acc", account);
+                                editor1.putString("password", password);
 
-                    editor1.apply();
+                                editor1.apply();
 
-                    Intent intent = new Intent(LoginActivity.this, BluetoothActivity.class);
-                    startActivity(intent);
-                    finish();
-                } else {
-                    Toast.makeText(LoginActivity.this, "帐号或密码无效",
-                            Toast.LENGTH_SHORT).show();
-                }
+                                Intent intent = new Intent(LoginActivity.this, BluetoothActivity.class);
+                                startActivity(intent);
+                                finish();
+                            }else {
+                                Log.e("loginxx",responseData);
+                            }
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+
+                        }
+                    }
+                }).start();
+
+//                // 如果账号是admin且密码是123456，就认为登录成功
+//                if (account.equals("123") && password.equals("123")) {
+//                    //editor1 = pref.edit();
+//
+//                    editor1.putString("acc", account);
+//                    editor1.putString("password", password);
+//
+//                    editor1.apply();
+//
+//                    Intent intent = new Intent(LoginActivity.this, BluetoothActivity.class);
+//                    startActivity(intent);
+//                    finish();
+//                } else {
+//                    Toast.makeText(LoginActivity.this, "帐号或密码无效",
+//                            Toast.LENGTH_SHORT).show();
+//                }
             }
         });
     }
