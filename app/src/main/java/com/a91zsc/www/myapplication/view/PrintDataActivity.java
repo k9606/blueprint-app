@@ -41,7 +41,13 @@ import java.util.List;
 import java.util.Objects;
 
 public class PrintDataActivity extends AppCompatActivity  {
+    public static final int takeaway = 0;
+    public static final int shopMeal = 1;
+    public static final int booked = 2;
+    public static int a = 1;
     public static int b = 1;
+    public static int c = 1;
+
     public Context context = null;
     PrintDataAction printDataAction;
 
@@ -271,9 +277,7 @@ public class PrintDataActivity extends AppCompatActivity  {
 
     PrintDataAction printDataAction1 = new PrintDataAction(context,getDeviceAddress(),deviceName,connectState);*/
 
-    public static final int aa = 0;
-    public static final int bb = 1;
-    public static final int cc = 2;
+
 
     Handler handler = new Handler() {
 
@@ -283,13 +287,13 @@ public class PrintDataActivity extends AppCompatActivity  {
             JSONObject jsonObject = JSONObject.fromObject(msg.obj+"");
             JSONObject order = jsonObject.getJSONObject("order");
            switch (msg.what){
-               case aa:
-                   diannei(jsonObject,order);
-                   break;
-               case bb:
+               case takeaway:
                    waimai(jsonObject,order);
                    break;
-               case cc:
+               case shopMeal:
+                   diannei(jsonObject,order);
+                   break;
+               case booked:
                    yuding(jsonObject,order);
                    break;
            }
@@ -327,20 +331,20 @@ public class PrintDataActivity extends AppCompatActivity  {
                                 String order_type = order.getString("order_type");
                                 switch (order_type){
                                     case "外卖":
-                                        Message msg1 = new Message();
-                                        msg1.what = bb;
-                                        msg1.obj = payload;
-                                        handler.sendMessage(msg1);
-                                        break;
-                                    case "店内点餐":
                                         Message msg = new Message();
-                                        msg.what = aa;
+                                        msg.what = takeaway;
                                         msg.obj = payload;
                                         handler.sendMessage(msg);
                                         break;
+                                    case "店内点餐":
+                                        Message msg1 = new Message();
+                                        msg1.what = shopMeal;
+                                        msg1.obj = payload;
+                                        handler.sendMessage(msg1);
+                                        break;
                                     case "预订到店":
                                         Message msg2 = new Message();
-                                        msg2.what = bb;
+                                        msg2.what = booked;
                                         msg2.obj = payload;
                                         handler.sendMessage(msg2);
                                         break;
@@ -354,7 +358,6 @@ public class PrintDataActivity extends AppCompatActivity  {
                             @Override
                             public void onClose(int code, String reason) {
                                 toastLog("断开服务器");
-                                b = 1;
                             }
                         });
                     } catch (WebSocketException e) {
@@ -386,7 +389,7 @@ public class PrintDataActivity extends AppCompatActivity  {
 //        TextView deviceName = (TextView) PrintDataActivity.this.findViewById(R.id.device_name);
 //        TextView connectState = (TextView) PrintDataActivity.this.findViewById(R.id.connect_state);
 //        PrintDataAction printDataAction = new PrintDataAction(PrintDataActivity.this.context,PrintDataActivity.this.getDeviceAddress(),deviceName,connectState);
-
+        printDataAction.printDataService.send(c+"单号",RESET);
         printDataAction.printDataService.send(shop_name+"\n",ALIGN_CENTER);
         printDataAction.printDataService.send("",RESET);
         printDataAction.printDataService.send(printTwoData("店内："+shoporder_sales,"桌号："+table_number)+"\n",DOUBLE_HEIGHT);
@@ -427,6 +430,7 @@ public class PrintDataActivity extends AppCompatActivity  {
         printDataAction.printDataService.send("\n",RESET);
         printDataAction.printDataService.send("\n",RESET);
         printDataAction.printDataService.send("\n",RESET);
+        c+=1;
 
     }
 
@@ -525,7 +529,7 @@ public class PrintDataActivity extends AppCompatActivity  {
 //        TextView deviceName = (TextView) PrintDataActivity.this.findViewById(R.id.device_name);
 //        TextView connectState = (TextView) PrintDataActivity.this.findViewById(R.id.connect_state);
 //        PrintDataAction printDataAction = new PrintDataAction(PrintDataActivity.this.context,PrintDataActivity.this.getDeviceAddress(),deviceName,connectState);
-        //printDataAction.printDataService.send(a,RESET);
+        printDataAction.printDataService.send(a+"单号",RESET);
         printDataAction.printDataService.send(shop_name+"\n",ALIGN_CENTER);
         printDataAction.printDataService.send("",RESET);
         printDataAction.printDataService.send("",ALIGN_CENTER);
@@ -571,6 +575,7 @@ public class PrintDataActivity extends AppCompatActivity  {
         printDataAction.printDataService.send("\n",RESET);
         printDataAction.printDataService.send("\n",RESET);
         printDataAction.printDataService.send("\n",RESET);
+        a+=1;
     }
 
 }

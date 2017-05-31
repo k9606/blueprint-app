@@ -136,9 +136,6 @@ public class PrintDataService {
 
 	public void send(String sendData,byte[] command) {
 		if (this.isConnection) {
-			for(int i=1;i<50;i++){
-				System.out.println(i+">>>>>>>>>>>>>>>>>>>>>>>>>>");
-			}
 			try {
 				byte[] data = sendData.getBytes("gbk");
 				outputStream.write(command);
