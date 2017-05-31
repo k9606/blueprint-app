@@ -1,0 +1,48 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="view.BluetoothActivity" >
+    
+    <TextView    
+        android:id="@+id/device_name"
+        android:layout_width="wrap_content"    
+        android:layout_height="wrap_content"
+        android:text="Large Text" />
+    
+    <TextView    
+        android:id="@+id/connect_state"
+        android:layout_width="wrap_content"    
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/device_name"
+        android:text="Large Text" />
+
+    <EditText
+        android:id="@+id/print_data"
+        android:layout_width="match_parent"
+        android:layout_height="200dp"
+        android:layout_below="@+id/connect_state" >
+    </EditText>
+
+    <Button    
+        android:id="@+id/send"    
+        android:layout_width="match_parent"    
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/print_data"
+        android:text="打印" />    
+    
+    <Button    
+        android:id="@+id/command"    
+        android:layout_width="match_parent"    
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/send"    
+        android:text="指令" />
+
+    <Button
+        android:id="@+id/wsStart"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/command"
+        android:text="测试" />
+
+</RelativeLayout>
