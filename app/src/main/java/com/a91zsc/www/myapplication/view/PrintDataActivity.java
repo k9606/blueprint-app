@@ -6,6 +6,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Button;
@@ -42,6 +43,8 @@ import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
 import java.nio.charset.Charset;
+import java.sql.Date;
+import java.text.SimpleDateFormat;
 
 public class PrintDataActivity extends AppCompatActivity  {
     public static final int takeaway = 0;
@@ -169,7 +172,7 @@ public class PrintDataActivity extends AppCompatActivity  {
 
             @Override
             public void onClick(View v) {
-                wsC.sendTextMessage("服务器正常"+"\n\n\n\n");
+                wsC.sendTextMessage("服务器正常");
                 new Thread(new Runnable() {
                     public void run() {
 
@@ -180,7 +183,7 @@ public class PrintDataActivity extends AppCompatActivity  {
 
 
 
-        start();
+        startws();
     }
 
 
@@ -310,7 +313,8 @@ public class PrintDataActivity extends AppCompatActivity  {
     }
     //public static String i=null;
     //public  static int it =0;
-    public void start(){
+    public void startws(){
+        //Log.e("xxxxxxxxxxxxxxxx","oooooooooooooooo");
         new Thread(){
             public void run(){
                     try {
@@ -402,6 +406,21 @@ public class PrintDataActivity extends AppCompatActivity  {
                             @Override
                             public void onClose(int code, String reason) {
                                 toastLog("断开服务器");
+                                SimpleDateFormat formatter = new SimpleDateFormat ("yyyy年MM月dd日 HH:mm:ss ");
+                                Date curDate = new Date(System.currentTimeMillis());//获取当前时间
+                                String str = formatter.format(curDate);
+                                printDataAction.printDataService.sendInfo("断开服务器："+str+"\n\n\n\n");
+                                MediaPlayer mediaPlayer;
+                                mediaPlayer = MediaPlayer.create(PrintDataActivity.this, R.raw.disconnect);
+                                mediaPlayer.start();
+                                /*finish();
+                                Intent intent = new Intent(PrintDataActivity.this,PrintDataActivity.class);
+                                startActivity(intent);*/
+                                //onRestart();
+
+                                //startws();
+                                //printDataAction.printDataService.sendInfo("服务器重连："+str+"\n\n\n\n");
+
                             }
                         });
                     } catch (WebSocketException e) {
