@@ -50,11 +50,9 @@ public class PrintDataActivity extends AppCompatActivity  {
     public static final int takeaway = 0;
     public static final int shopMeal = 1;
     public static final int booked = 2;
-    public static int a = 1;
-    public static int b = 1;
-    public static int c = 1;
-
     public Context context = null;
+    public TextView deviceNam  = null;
+    public TextView connectState  = null;
     PrintDataAction printDataAction;
 
 
@@ -139,37 +137,35 @@ public class PrintDataActivity extends AppCompatActivity  {
 
 
     private  TextView deviceName;
-    private  TextView connectState;
 
 
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        this.setTitle("哎呀科技");
         this.setContentView(R.layout.printdata_layout);
+        getSupportActionBar().hide();
         this.context = this;
-        deviceName = (TextView) this.findViewById(R.id.device_name);
-        connectState = (TextView) this
-                .findViewById(R.id.connect_state);
+        deviceName = (TextView) this.findViewById(R.id.connect_state);
+        connectState = (TextView) this.findViewById(R.id.connect_state);
+//        1
+//        connectState = (TextView) this.findViewById(R.id.unbondDevices);
 
-        printDataAction= new PrintDataAction(this.context,
+        printDataAction = new PrintDataAction(this.context,
                 this.getDeviceAddress(), deviceName, connectState);
-
+        //Edittext
         EditText printData = (EditText) this.findViewById(R.id.print_data);
+
         Button send = (Button) this.findViewById(R.id.send);
-        Button command = (Button) this.findViewById(R.id.command);
-        printDataAction.setPrintData(printData);
+        Button command = (Button) this.findViewById(R.id.wsStart);
+        //打印机测试
+//        printDataAction.setPrintData(printData);
 
         send.setOnClickListener(printDataAction);
-        command.setOnClickListener(printDataAction);
-
-
-        //this.initListener();
-
-
-        Button wsStart = (Button) findViewById(R.id.wsStart);
-        wsStart.setOnClickListener(new View.OnClickListener() {
-
+//        command.setOnClickListener(printDataAction);
+        this.initListener();
+//1
+        command = (Button) findViewById(R.id.wsStart);
+        command.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 wsC.sendTextMessage("服务器正常");
@@ -181,9 +177,7 @@ public class PrintDataActivity extends AppCompatActivity  {
             }
         });
 
-
-
-        startws();
+        dataProcessing();
     }
 
 
@@ -313,7 +307,7 @@ public class PrintDataActivity extends AppCompatActivity  {
     }
     //public static String i=null;
     //public  static int it =0;
-    public void startws(){
+    public void dataProcessing(){
         //Log.e("xxxxxxxxxxxxxxxx","oooooooooooooooo");
         new Thread(){
             public void run(){
@@ -440,6 +434,8 @@ public class PrintDataActivity extends AppCompatActivity  {
 
     public void test(String msg){
         printDataAction.printDataService.sendInfo(msg+"\n\n\n\n");
+
+        toastLog(msg);
     }
 
     public void heartbeat(String msg){
@@ -499,7 +495,7 @@ public class PrintDataActivity extends AppCompatActivity  {
 //        TextView deviceName = (TextView) PrintDataActivity.this.findViewById(R.id.device_name);
 //        TextView connectState = (TextView) PrintDataActivity.this.findViewById(R.id.connect_state);
 //        PrintDataAction printDataAction = new PrintDataAction(PrintDataActivity.this.context,PrintDataActivity.this.getDeviceAddress(),deviceName,connectState);
-        printDataAction.printDataService.send(c+"单号",RESET);
+        printDataAction.printDataService.send("",RESET);
         printDataAction.printDataService.send(shop_name+"\n",ALIGN_CENTER);
         printDataAction.printDataService.send("",RESET);
         printDataAction.printDataService.send(printTwoData("店内："+shoporder_sales,"桌号："+table_number)+"\n",DOUBLE_HEIGHT);
@@ -540,7 +536,7 @@ public class PrintDataActivity extends AppCompatActivity  {
         printDataAction.printDataService.send("\n",RESET);
         printDataAction.printDataService.send("\n",RESET);
         printDataAction.printDataService.send("\n",RESET);
-        c+=1;
+
 
     }
 
@@ -566,7 +562,7 @@ public class PrintDataActivity extends AppCompatActivity  {
 //        TextView deviceName = (TextView) PrintDataActivity.this.findViewById(R.id.device_name);
 //        TextView connectState = (TextView) PrintDataActivity.this.findViewById(R.id.connect_state);
 //        PrintDataAction printDataAction = new PrintDataAction(PrintDataActivity.this.context,PrintDataActivity.this.getDeviceAddress(),deviceName,connectState);
-        printDataAction.printDataService.send(b+" 号单   ",RESET);
+        printDataAction.printDataService.send("",RESET);
         printDataAction.printDataService.send(shop_name+"\n",ALIGN_CENTER);
         printDataAction.printDataService.send("",RESET);
         printDataAction.printDataService.send("",ALIGN_CENTER);
@@ -613,7 +609,6 @@ public class PrintDataActivity extends AppCompatActivity  {
         printDataAction.printDataService.send("\n",RESET);
         printDataAction.printDataService.send("\n",RESET);
         printDataAction.printDataService.send("\n",RESET);
-        b += 1;
     }
 
     public void yuding(JSONObject jsonObject,JSONObject order){
@@ -639,7 +634,7 @@ public class PrintDataActivity extends AppCompatActivity  {
 //        TextView deviceName = (TextView) PrintDataActivity.this.findViewById(R.id.device_name);
 //        TextView connectState = (TextView) PrintDataActivity.this.findViewById(R.id.connect_state);
 //        PrintDataAction printDataAction = new PrintDataAction(PrintDataActivity.this.context,PrintDataActivity.this.getDeviceAddress(),deviceName,connectState);
-        printDataAction.printDataService.send(a+"单号",RESET);
+        printDataAction.printDataService.send("",RESET);
         printDataAction.printDataService.send(shop_name+"\n",ALIGN_CENTER);
         printDataAction.printDataService.send("",RESET);
         printDataAction.printDataService.send("",ALIGN_CENTER);
@@ -685,7 +680,6 @@ public class PrintDataActivity extends AppCompatActivity  {
         printDataAction.printDataService.send("\n",RESET);
         printDataAction.printDataService.send("\n",RESET);
         printDataAction.printDataService.send("\n",RESET);
-        a+=1;
     }
 
 }

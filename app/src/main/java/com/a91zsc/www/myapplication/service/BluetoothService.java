@@ -31,40 +31,41 @@ public class BluetoothService {
     private Button searchDevices = null;
     private ListView unbondDevicesListView = null;
     private ListView bondDevicesListView = null;
+//    private ArrayList<HashMap<String, Object>> data = null;
+//    private String mapdate = null;
 
     /**
      * 添加已绑定蓝牙设备到ListView
      */
     private void addBondDevicesToListView() {
-        ArrayList<HashMap<String, Object>> data = new ArrayList<HashMap<String, Object>>();
+        final ArrayList<HashMap<String, Object>> data = new ArrayList<HashMap<String, Object>>();
         int count = this.bondDevices.size();
-        System.out.println("已绑定设备数量：" + count);
         for (int i = 0; i < count; i++) {
             HashMap<String, Object> map = new HashMap<String, Object>();
             map.put("deviceName", this.bondDevices.get(i).getName());
             data.add(map);// 把item项的数据加到data中
+            //测试
+            System.out.println(this.bondDevices.get(i).getName());
         }
-        String[] from = { "deviceName" };
-        int[] to = { R.id.device_name };
+        String[] from = {"deviceName"};
+        int[] to = {R.id.device_name};
         SimpleAdapter simpleAdapter = new SimpleAdapter(this.context, data,
                 R.layout.bonddevice_item, from, to);
         // 把适配器装载到listView中
         this.bondDevicesListView.setAdapter(simpleAdapter);
+        //点击事件
+        this.bondDevicesListView.setOnItemClickListener(new OnItemClickListener() {
 
-        this.bondDevicesListView
-                .setOnItemClickListener(new OnItemClickListener() {
-
-                    @Override
-                    public void onItemClick(AdapterView<?> arg0, View arg1,
-                                            int arg2, long arg3) {
-                        BluetoothDevice device = bondDevices.get(arg2);
-                        Intent intent = new Intent();
-                        intent.setClassName(context,
-                                "com.a91zsc.www.myapplication.view.PrintDataActivity");
-                        intent.putExtra("deviceAddress", device.getAddress());
-                        context.startActivity(intent);
-                    }
-                });
+            @Override
+            public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+                BluetoothDevice device = bondDevices.get(arg2);
+                Intent intent = new Intent();
+                intent.setClassName(context,
+                        "com.a91zsc.www.myapplication.view.PrintDataActivity");
+                intent.putExtra("deviceAddress", device.getAddress());
+                context.startActivity(intent);
+            }
+        });
 
     }
 
@@ -74,17 +75,15 @@ public class BluetoothService {
     private void addUnbondDevicesToListView() {
         ArrayList<HashMap<String, Object>> data = new ArrayList<HashMap<String, Object>>();
         int count = this.unbondDevices.size();
-        System.out.println("未绑定设备数量：" + count);
         for (int i = 0; i < count; i++) {
             HashMap<String, Object> map = new HashMap<String, Object>();
             map.put("deviceName", this.unbondDevices.get(i).getName());
             data.add(map);// 把item项的数据加到data中
         }
-        String[] from = { "deviceName" };
-        int[] to = { R.id.undevice_name };
+        String[] from = {"deviceName"};
+        int[] to = {R.id.undevice_name};
         SimpleAdapter simpleAdapter = new SimpleAdapter(this.context, data,
                 R.layout.unbonddevice_item, from, to);
-
         // 把适配器装载到listView中
         this.unbondDevicesListView.setAdapter(simpleAdapter);
 
@@ -98,12 +97,12 @@ public class BluetoothService {
                         try {
                             Method createBondMethod = BluetoothDevice.class
                                     .getMethod("createBond");
-                            createBondMethod
-                                    .invoke(unbondDevices.get(arg2));
+                            createBondMethod.invoke(unbondDevices.get(arg2));
                             // 将绑定好的设备添加的已绑定list集合
                             bondDevices.add(unbondDevices.get(arg2));
                             // 将绑定好的设备从未绑定list集合中移除
                             unbondDevices.remove(arg2);
+
                             addBondDevicesToListView();
                             addUnbondDevicesToListView();
                         } catch (Exception e) {
@@ -184,7 +183,6 @@ public class BluetoothService {
      * @param device
      */
     public void addUnbondDevices(BluetoothDevice device) {
-        System.out.println("未绑定设备名称：" + device.getName());
         if (!this.unbondDevices.contains(device)) {
             this.unbondDevices.add(device);
         }
@@ -196,7 +194,6 @@ public class BluetoothService {
      * @param device
      */
     public void addBandDevices(BluetoothDevice device) {
-        System.out.println("已绑定设备名称：" + device.getName());
         if (!this.bondDevices.contains(device)) {
             this.bondDevices.add(device);
         }
@@ -218,29 +215,29 @@ public class BluetoothService {
                 if (device.getBondState() == BluetoothDevice.BOND_BONDED) {
                     addBandDevices(device);
                 } else {
+
                     addUnbondDevices(device);
                 }
             } else if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
-                progressDialog = ProgressDialog.show(context, "",
+                progressDialog = ProgressDialog.show(context, null,
                         "稍等", true);
 
             } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED
                     .equals(action)) {
-                System.out.println("设备搜索完毕");
                 progressDialog.dismiss();
 
                 addUnbondDevicesToListView();
                 addBondDevicesToListView();
-                // bluetoothAdapter.cancelDiscovery();
+                bluetoothAdapter.cancelDiscovery();
             }
             if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
                 if (bluetoothAdapter.getState() == BluetoothAdapter.STATE_ON) {
-                    System.out.println("--------打开蓝牙-----------");
+                    Toast.makeText(context, "蓝牙已打开！", Toast.LENGTH_LONG).show();
                     searchDevices.setEnabled(true);
                     bondDevicesListView.setEnabled(true);
                     unbondDevicesListView.setEnabled(true);
                 } else if (bluetoothAdapter.getState() == BluetoothAdapter.STATE_OFF) {
-                    System.out.println("--------关闭蓝牙-----------");
+                    Toast.makeText(context, "蓝牙未打开！请打开蓝牙！", Toast.LENGTH_LONG).show();
                     searchDevices.setEnabled(false);
                     bondDevicesListView.setEnabled(false);
                     unbondDevicesListView.setEnabled(false);

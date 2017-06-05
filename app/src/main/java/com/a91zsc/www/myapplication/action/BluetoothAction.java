@@ -6,6 +6,7 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.a91zsc.www.myapplication.service.BluetoothService;
 import com.a91zsc.www.myapplication.R;
@@ -48,10 +49,10 @@ public class BluetoothAction implements OnClickListener {
     public void initView() {
 
         if (this.bluetoothService.isOpen()) {
-            System.out.println("蓝牙");
+            Toast.makeText(context, "蓝牙已打开！", Toast.LENGTH_LONG).show();
         }
         if (!this.bluetoothService.isOpen()) {
-            System.out.println("蓝牙没开!");
+            Toast.makeText(context, "蓝牙未打开！请打开蓝牙", Toast.LENGTH_LONG).show();
             this.searchDevices.setEnabled(false);
         }
     }

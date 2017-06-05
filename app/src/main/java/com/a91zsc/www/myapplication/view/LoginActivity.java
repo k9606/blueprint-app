@@ -39,8 +39,10 @@ public class LoginActivity extends AppCompatActivity {
             finish();
         }
         super.onCreate(savedInstanceState);
-        this.setTitle("哎呀科技");
+        //this.setTitle("哎呀科技");
         setContentView(R.layout.activity_login);
+
+        getSupportActionBar().hide();
 
         accountEdit = (EditText) findViewById(R.id.account);
         passwordEdit = (EditText) findViewById(R.id.password);

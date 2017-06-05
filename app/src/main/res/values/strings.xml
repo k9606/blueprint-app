@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">My Application</string>
+    <string name="app_name">Bluetooth connectivity</string>
     <string name="title_activity_login">Sign in</string>
 
     <!-- Strings related to login -->
@@ -14,4 +14,11 @@
     <string name="permission_rationale">"Contacts permissions are needed for providing email
         completions."
     </string>
+    <string name="login">登 录</string>
+    <string name="login_name">登录名:</string>
+    <string name="login_password">密 码:</string>
+    <string name="search_equipment">搜索设备</string>
+    <string name="no_paired_device">未配对设备</string>
+    <string name="paired_device">已配对设备</string>
+    <string name="texttitle">Copyright 2015-2017 ZhunShiChi. All Rights Reserved.</string>
 </resources>

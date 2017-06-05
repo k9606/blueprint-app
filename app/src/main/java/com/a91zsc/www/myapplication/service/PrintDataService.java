@@ -45,6 +45,7 @@ public class PrintDataService {
 		super();
 		this.context = context;
 		this.deviceAddress = deviceAddress;
+		//返回相应的被制定的蓝牙连接的远端设备
 		this.device = this.bluetoothAdapter.getRemoteDevice(this.deviceAddress);
 	}
 
@@ -152,22 +153,21 @@ public class PrintDataService {
 		}
 	}
 	//outputStream接收数据
-    public void sendInfo(String sendData) {
-        if (this.isConnection) {
-            System.out.println("开始打印！！");
-            try {
-                byte[] data = sendData.getBytes("gbk");
-                outputStream.write(data, 0, data.length);
-                outputStream.flush();
-            } catch (IOException e) {
-                Toast.makeText(this.context, "发送失败！", Toast.LENGTH_SHORT)
-                        .show();
-            }
-        } else {
-            Toast.makeText(this.context, "设备未连接，请重新连接！", Toast.LENGTH_SHORT)
-                    .show();
+	public void sendInfo(String sendData) {
+		if (this.isConnection) {
+			try {
+				byte[] data = sendData.getBytes("gbk");
+				outputStream.write(data, 0, data.length);
+				outputStream.flush();
+			} catch (IOException e) {
+				Toast.makeText(this.context, "发送失败！", Toast.LENGTH_SHORT)
+						.show();
+			}
+		} else {
+			Toast.makeText(this.context, "设备未连接，请重新连接！", Toast.LENGTH_SHORT)
+					.show();
 
-        }
-    }
+		}
+	}
 
 }

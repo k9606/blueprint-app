@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -18,13 +17,14 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.widget.Toast;
 
-public class BluetoothActivity extends AppCompatActivity {
+public class BluetoothActivity extends Activity {
 
 	private Context context = null;
-
+	//    private Button searchDevices ;
+	private Button searchDevices ;
 	public void onCreate(Bundle savedInstanceState) {
-		SharedPreferences pref = getSharedPreferences("data",MODE_PRIVATE);
-		String account = pref.getString("acc","");
+		SharedPreferences pref = getSharedPreferences("data", MODE_PRIVATE);
+		String account = pref.getString("acc", "");
 
 
 
@@ -39,23 +39,24 @@ public class BluetoothActivity extends AppCompatActivity {
 //				Toast.LENGTH_SHORT).show();
 
 
-		if(account == null || account.length() <= 0){
-			Intent intent = new Intent(BluetoothActivity.this,LoginActivity.class);
+		if (account == null || account.length() <= 0) {
+			Intent intent = new Intent(BluetoothActivity.this, LoginActivity.class);
 			startActivity(intent);
 			finish();
 		}
 		super.onCreate(savedInstanceState);
 		this.context = this;
-		setTitle("哎呀科技");
+
 		setContentView(R.layout.bluetooth_layout);
+
 		this.initListener();
 	}
 
 	private void initListener() {
-		ListView unbondDevices = (ListView) this
-				.findViewById(R.id.unbondDevices);
+		searchDevices = (Button) this.findViewById(R.id.searchDevices);
+		ListView unbondDevices = (ListView) this.findViewById(R.id.unbondDevices);
 		ListView bondDevices = (ListView) this.findViewById(R.id.bondDevices);
-		Button searchDevices = (Button) this.findViewById(R.id.searchDevices);
+
 
 		BluetoothAction bluetoothAction = new BluetoothAction(this.context,
 				unbondDevices, bondDevices, searchDevices,
@@ -67,12 +68,12 @@ public class BluetoothActivity extends AppCompatActivity {
 
 		searchDevices.setOnClickListener(bluetoothAction);
 	}
+
 	//屏蔽返回键的代码:
-	public boolean onKeyDown(int keyCode,KeyEvent event)
-	{
-		switch(keyCode)
-		{
-			case KeyEvent.KEYCODE_BACK:return true;
+	public boolean onKeyDown(int keyCode, KeyEvent event) {
+		switch (keyCode) {
+			case KeyEvent.KEYCODE_BACK:
+				return true;
 		}
 		return super.onKeyDown(keyCode, event);
 	}

@@ -5,6 +5,8 @@ import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
+
 
 import com.a91zsc.www.myapplication.service.PrintDataService;
 import com.a91zsc.www.myapplication.R;
@@ -15,7 +17,6 @@ public class PrintDataAction implements OnClickListener {
     private Context context = null;
     private TextView deviceName = null;
     private TextView connectState = null;
-    private EditText printData = null;
     private String deviceAddress = null;
     public PrintDataService printDataService = null;
 
@@ -33,33 +34,30 @@ public class PrintDataAction implements OnClickListener {
     }
 
     private void initView() {
-        // 设置当前设备名称
-        this.deviceName.setText(this.printDataService.getDeviceName());
+        // 给Item绑定名称,从printDataService中得到的值，通过GetDeviceName方法，返回的是一个String类型的值
         // 链接蓝牙设备
         boolean flag = this.printDataService.connect();
         if (flag == false) {
             // 连接失败
-            this.connectState.setText("连接失败");
+            this.connectState.setText(this.printDataService.getDeviceName()+" 连接失败!");
         } else {
             // 连接成功
-            this.connectState.setText("连接成功");
+            this.connectState.setText(this.printDataService.getDeviceName()+" 连接成功!");
 
         }
     }
 
-    public void setPrintData(EditText printData) {
-        this.printData = printData;
-    }
+//    public void setPrintData(EditText printData) {
+//        this.printData = printData;
+//    }
 
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.send) {
-            String sendData = this.printData.getText().toString();
-            //send();
-            this.printDataService.sendInfo("打印机正常" + "\n\n\n\n");
-        } else if (v.getId() == R.id.command) {
-            this.printDataService.selectCommand();
-
+            this.printDataService.sendInfo("打印机服务正常" + "\n\n\n\n");
+        }else{
+            //判断答应及和蓝牙连接是否正常
+            Toast.makeText(this.context,"蓝牙尝试连接失败请重连!",Toast.LENGTH_LONG).show();
         }
     }
 }

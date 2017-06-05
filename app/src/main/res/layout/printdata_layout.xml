@@ -1,48 +1,148 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="view.BluetoothActivity" >
-    
-    <TextView    
-        android:id="@+id/device_name"
-        android:layout_width="wrap_content"    
-        android:layout_height="wrap_content"
-        android:text="Large Text" />
-    
-    <TextView    
-        android:id="@+id/connect_state"
-        android:layout_width="wrap_content"    
-        android:layout_height="wrap_content"
-        android:layout_toRightOf="@+id/device_name"
-        android:text="Large Text" />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              tools:context="view.BluetoothActivity">
 
-    <EditText
-        android:id="@+id/print_data"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_below="@+id/connect_state" >
-    </EditText>
+        android:layout_height="match_parent"
+        android:layout_weight="2"
+        android:background="@color/blue"
+        android:gravity="center"
+        >
 
-    <Button    
-        android:id="@+id/send"    
-        android:layout_width="match_parent"    
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/print_data"
-        android:text="打印" />    
-    
-    <Button    
-        android:id="@+id/command"    
-        android:layout_width="match_parent"    
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/send"    
-        android:text="指令" />
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:enabled="false"
+            android:scaleType="centerInside"
+            android:src="@mipmap/transparent"
+            />
 
-    <Button
-        android:id="@+id/wsStart"
+        <!--<Button-->
+            <!--android:id="@+id/printContent"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="30dp"-->
+            <!--android:layout_weight="1"-->
+            <!--android:background="@drawable/viewconnect"-->
+            <!--android:enabled="false"-->
+            <!--android:gravity="center"-->
+            <!--android:textSize="15sp"-->
+            <!--android:text="HUAWEI930 连接成功"/>-->
+        <TextView
+            android:id="@+id/connect_state"
+            android:layout_width="match_parent"
+            android:layout_height="30dp"
+            android:textSize="15sp"
+            android:background="@drawable/text_view_border"
+            android:layout_weight="1"
+            android:gravity="center"
+            android:enabled="false"
+            android:textColor="@color/blue"
+            />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:enabled="false"
+            android:scaleType="centerInside"
+            android:src="@mipmap/transparent"
+            />
+    </LinearLayout>
+
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/command"
-        android:text="测试" />
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@color/white"
+        android:gravity="center"
+        android:orientation="vertical">
 
-</RelativeLayout>
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:enabled="false"
+                android:scaleType="centerInside"
+                android:src="@mipmap/transparent"
+                />
+
+            <Button
+                android:id="@+id/send"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_below="@+id/print_data"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:background="@drawable/viewtestbutton"
+                android:text="打印机连接测试"
+                android:textColor="@color/white"
+                android:textSize="15sp"/>
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:enabled="false"
+                android:scaleType="centerInside"
+                android:src="@mipmap/transparent"
+                />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center">
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:enabled="false"
+                android:scaleType="centerInside"
+                android:src="@mipmap/transparent"
+                />
+
+            <Button
+                android:id="@+id/wsStart"
+                android:layout_width="match_parent"
+                android:layout_height="40dp"
+                android:layout_weight="1"
+                android:gravity="center"
+                android:background="@drawable/viewtestbutton"
+                android:text="服务器链接测试"
+                android:textColor="@color/white"
+                android:textSize="15sp"/>
+
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:enabled="false"
+                android:scaleType="centerInside"
+                android:src="@mipmap/transparent"
+                />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+
+</LinearLayout>

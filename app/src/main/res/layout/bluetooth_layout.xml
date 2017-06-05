@@ -1,50 +1,175 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context="view.BluetoothActivity" >
-
-    <Button
-        android:id="@+id/searchDevices"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="搜索设备" />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:tools="http://schemas.android.com/tools"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical"
+              tools:context="view.BluetoothActivity">
 
     <LinearLayout
-        android:id="@+id/linearLayout1"
+        android:id="@+id/ButtonView"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_marginTop="50dp"
-        android:orientation="vertical" >
+        android:layout_height="match_parent"
+        android:layout_weight="2"
+        android:background="@color/blue"
+        android:gravity="center_vertical"
+        >
 
-        <TextView
+        <ImageView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="未配对设备" />
+            android:layout_weight="2"
+            android:scaleType="center"
+            android:src="@mipmap/transparent"
+            />
 
-        <ListView
-            android:id="@+id/unbondDevices"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+        <Button
+            android:id="@+id/searchDevices"
+            android:layout_width="match_parent"
+            android:layout_height="40dp"
+            android:layout_weight="1"
+            android:background="@drawable/buttonstyle_b"
+            android:text="搜索设备"/>
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_weight="2"
+            android:scaleType="center"
+            android:src="@mipmap/transparent"
+            />
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/ViewLayot"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
-        android:layout_marginTop="250dp"
-        android:orientation="vertical" >
+        android:layout_height="match_parent"
+        android:layout_weight="1"
+        android:background="@color/white"
+        android:orientation="vertical">
 
-        <TextView
+        <LinearLayout
+            android:id="@+id/linearLayoutSearch"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="已配对设备" />
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-        <ListView
-            android:id="@+id/bondDevices"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content">
-        </ListView>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:gravity="center"
+                android:orientation="horizontal">
 
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:enabled="false"
+                    android:scaleType="center"
+                    android:src="@mipmap/transparent"
+                    />
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/buttonstyle_birds"
+                    android:enabled="false"
+                    android:text="未配对设备"
+                    android:textColor="@color/white"/>
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:enabled="false"
+                    android:scaleType="center"
+                    android:src="@mipmap/transparent"
+                    />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center"
+                >
+
+                <ListView
+                    android:id="@+id/unbondDevices"
+                    android:layout_width="200dp"
+                    android:layout_height="match_parent"
+                    android:layout_margin="10dp"
+                    android:divider="#00000000"
+                    android:dividerHeight="4pt"
+
+                    >
+                </ListView>
+            </LinearLayout>
+
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/linearLayoutPairing"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:orientation="vertical"
+            >
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="2"
+                android:gravity="center"
+                android:orientation="horizontal">
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:enabled="false"
+                    android:scaleType="center"
+                    android:src="@mipmap/transparent"
+                    />
+
+                <Button
+                    android:layout_width="match_parent"
+                    android:layout_height="30dp"
+                    android:layout_weight="1"
+                    android:background="@drawable/buttonstyle_birds"
+                    android:text="已配对设备"
+                    android:enabled="false"
+                    android:textColor="@color/white"/>
+
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="2"
+                    android:enabled="false"
+                    android:scaleType="center"
+                    android:src="@mipmap/transparent"
+                    />
+            </LinearLayout>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:gravity="center">
+
+                <ListView
+                    android:id="@+id/bondDevices"
+                    android:layout_width="200dp"
+                    android:layout_height="match_parent"
+                    android:divider="#00000000"
+                    android:dividerHeight="4pt"
+                    >
+                </ListView>
+
+            </LinearLayout>
+        </LinearLayout>
     </LinearLayout>
-
-</RelativeLayout>
+</LinearLayout>
