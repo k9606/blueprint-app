@@ -558,7 +558,7 @@ public class PrintDataActivity extends AppCompatActivity  {
         String total = order.getString("total");
         String promotions = order.getString("promotions");
         String pay_type = order.getString("pay_type");
-        pay_type = (pay_type=="现金支付")?"(未付款)":"(已付款)";
+        pay_type = (pay_type.equals("现金支付"))?"(未付款)":"(已付款)";
         String memo = order.getString("memo");
 
 //        TextView deviceName = (TextView) PrintDataActivity.this.findViewById(R.id.device_name);
