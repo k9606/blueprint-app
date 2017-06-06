@@ -46,15 +46,32 @@ import net.sf.json.JSONObject;
 import java.nio.charset.Charset;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.AppCompatActivity;
+import android.os.Bundle;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
 
 public class PrintDataActivity extends AppCompatActivity  {
     public static final int takeaway = 0;
     public static final int shopMeal = 1;
     public static final int booked = 2;
+    public String fuck = "1";
     public Context context = null;
     public TextView deviceNam  = null;
     public TextView connectState  = null;
     PrintDataAction printDataAction;
+
+        private IntentFilter intentFilter;
+
+    private NetworkChangeReceiver networkChangeReceiver;
 
 
     /**
@@ -151,6 +168,11 @@ public class PrintDataActivity extends AppCompatActivity  {
 //        1
 //        connectState = (TextView) this.findViewById(R.id.unbondDevices);
 
+                intentFilter = new IntentFilter();
+        intentFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
+        networkChangeReceiver = new NetworkChangeReceiver();
+        registerReceiver(networkChangeReceiver, intentFilter);
+
         printDataAction = new PrintDataAction(this.context,
                 this.getDeviceAddress(), deviceName, connectState);
         //Edittext
@@ -207,9 +229,34 @@ public class PrintDataActivity extends AppCompatActivity  {
     protected void onDestroy() {
         PrintDataService.disconnect();
         super.onDestroy();
+                unregisterReceiver(networkChangeReceiver);
         if (wsC.isConnected()) {
             wsC.disconnect();
         }
+    }
+
+        class NetworkChangeReceiver extends BroadcastReceiver {
+
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ConnectivityManager connectionManager = (ConnectivityManager)
+                    getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = connectionManager.getActiveNetworkInfo();
+            if (networkInfo != null && networkInfo.isAvailable()) {
+                Toast.makeText(context, "network is available",
+                        Toast.LENGTH_SHORT).show();
+                if(fuck == "0"){
+                    Log.e("xxxxxxxxxxx",fuck);
+                    PrintDataActivity.this.recreate();
+                }
+
+            } else {
+                Toast.makeText(context, "network is unavailable",
+                        Toast.LENGTH_SHORT).show();
+            }
+
+        }
+
     }
 
 //########################################格式相关########################################//
@@ -408,8 +455,9 @@ public class PrintDataActivity extends AppCompatActivity  {
                                 MediaPlayer mediaPlayer;
                                 mediaPlayer = MediaPlayer.create(PrintDataActivity.this, R.raw.disconnect);
                                 mediaPlayer.start();
+                                fuck = "0";
 
-                                PrintDataActivity.this.recreate();
+                                //PrintDataActivity.this.recreate();
 
 //                                new Thread(new Runnable(){
 //                                        public void run(){
