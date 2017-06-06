@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.os.Bundle;
+import android.support.v7.view.menu.ExpandedMenuView;
 import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
@@ -407,6 +408,26 @@ public class PrintDataActivity extends AppCompatActivity  {
                                 MediaPlayer mediaPlayer;
                                 mediaPlayer = MediaPlayer.create(PrintDataActivity.this, R.raw.disconnect);
                                 mediaPlayer.start();
+
+                                PrintDataActivity.this.recreate();
+
+//                                new Thread(new Runnable(){
+//                                        public void run(){
+//                                            try{
+//                                                Thread.sleep(30000);
+//                                                Intent intent = getIntent();
+//                                                finish();
+//                                                startActivity(intent);
+//                                            }catch (Exception w){
+//
+//                                            }
+//
+//                                            //handler.sendMessage();
+//                                        }
+//                                }).start();
+
+
+
                                 /*finish();
                                 Intent intent = new Intent(PrintDataActivity.this,PrintDataActivity.class);
                                 startActivity(intent);*/
