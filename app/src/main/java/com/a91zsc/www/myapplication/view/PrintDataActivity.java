@@ -225,15 +225,28 @@ public class PrintDataActivity extends AppCompatActivity  {
     }
 
 
-    @Override
-    protected void onDestroy() {
-        PrintDataService.disconnect();
-        super.onDestroy();
-                unregisterReceiver(networkChangeReceiver);
-        if (wsC.isConnected()) {
-            wsC.disconnect();
-        }
+//    @Override
+//    protected void onDestroy() {
+//        PrintDataService.disconnect();
+//        super.onDestroy();
+//                unregisterReceiver(networkChangeReceiver);
+//        if (wsC.isConnected()) {
+//            wsC.disconnect();
+//        }
+//    }
+@Override
+protected void onDestroy() {
+    PrintDataService.disconnect();
+    super.onDestroy();
+    Intent service = new Intent(this, PrintDataService.class);
+    Log.e("xxxxxxxxxxx","oooooooooooooo");
+    startService(service);
+    super.onDestroy();
+    unregisterReceiver(networkChangeReceiver);
+    if (wsC.isConnected()) {
+        wsC.disconnect();
     }
+}
 
         class NetworkChangeReceiver extends BroadcastReceiver {
 
@@ -243,16 +256,13 @@ public class PrintDataActivity extends AppCompatActivity  {
                     getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo networkInfo = connectionManager.getActiveNetworkInfo();
             if (networkInfo != null && networkInfo.isAvailable()) {
-                Toast.makeText(context, "network is available",
-                        Toast.LENGTH_SHORT).show();
+//                Toast.makeText(context, "network is available",
+//                        Toast.LENGTH_SHORT).show();
                 if(fuck == "0"){
                     Log.e("xxxxxxxxxxx",fuck);
                     PrintDataActivity.this.recreate();
                 }
 
-            } else {
-                Toast.makeText(context, "network is unavailable",
-                        Toast.LENGTH_SHORT).show();
             }
 
         }
