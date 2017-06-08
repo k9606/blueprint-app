@@ -1,6 +1,7 @@
 package com.a91zsc.www.myapplication.view;
 
 import android.app.Activity;
+import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
@@ -20,11 +21,15 @@ import android.widget.Toast;
 public class BluetoothActivity extends Activity {
 
 	private Context context = null;
+	BluetoothAdapter mBluetoothAdapter;
+
 	//    private Button searchDevices ;
 	private Button searchDevices ;
 	public void onCreate(Bundle savedInstanceState) {
 		SharedPreferences pref = getSharedPreferences("data", MODE_PRIVATE);
 		String account = pref.getString("acc", "");
+		mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+		openBlue();
 
 
 
@@ -50,6 +55,15 @@ public class BluetoothActivity extends Activity {
 		setContentView(R.layout.bluetooth_layout);
 
 		this.initListener();
+	}
+
+	public void openBlue(){
+		if(mBluetoothAdapter.isEnabled()){
+
+		}else {
+			mBluetoothAdapter.enable();
+		}
+
 	}
 
 	private void initListener() {

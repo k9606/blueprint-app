@@ -232,12 +232,12 @@ public class BluetoothService {
             }
             if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
                 if (bluetoothAdapter.getState() == BluetoothAdapter.STATE_ON) {
-                    Toast.makeText(context, "蓝牙已打开！", Toast.LENGTH_LONG).show();
+                    //Toast.makeText(context, "蓝牙已打开！", Toast.LENGTH_LONG).show();
                     searchDevices.setEnabled(true);
                     bondDevicesListView.setEnabled(true);
                     unbondDevicesListView.setEnabled(true);
                 } else if (bluetoothAdapter.getState() == BluetoothAdapter.STATE_OFF) {
-                    Toast.makeText(context, "蓝牙未打开！请打开蓝牙！", Toast.LENGTH_LONG).show();
+                    //Toast.makeText(context, "蓝牙未打开！请打开蓝牙！", Toast.LENGTH_LONG).show();
                     searchDevices.setEnabled(false);
                     bondDevicesListView.setEnabled(false);
                     unbondDevicesListView.setEnabled(false);

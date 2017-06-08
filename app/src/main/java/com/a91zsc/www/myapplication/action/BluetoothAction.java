@@ -49,10 +49,10 @@ public class BluetoothAction implements OnClickListener {
     public void initView() {
 
         if (this.bluetoothService.isOpen()) {
-            Toast.makeText(context, "蓝牙已打开！", Toast.LENGTH_LONG).show();
+            //Toast.makeText(context, "蓝牙已打开！", Toast.LENGTH_LONG).show();
         }
         if (!this.bluetoothService.isOpen()) {
-            Toast.makeText(context, "蓝牙未打开！请打开蓝牙", Toast.LENGTH_LONG).show();
+            //Toast.makeText(context, "蓝牙未打开！请打开蓝牙", Toast.LENGTH_LONG).show();
             this.searchDevices.setEnabled(false);
         }
     }
