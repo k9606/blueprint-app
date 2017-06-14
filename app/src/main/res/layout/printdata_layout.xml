@@ -85,7 +85,7 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:background="@drawable/viewtestbutton"
-                android:text="打印机连接测试"
+                android:text="@string/bluetooth_test"
                 android:textColor="@color/white"
                 android:textSize="15sp"/>
 
@@ -121,7 +121,7 @@
                 android:layout_weight="1"
                 android:gravity="center"
                 android:background="@drawable/viewtestbutton"
-                android:text="服务器链接测试"
+                android:text="@string/service_test"
                 android:textColor="@color/white"
                 android:textSize="15sp"/>
 

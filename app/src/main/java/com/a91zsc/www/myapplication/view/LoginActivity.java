@@ -1,8 +1,11 @@
 package com.a91zsc.www.myapplication.view;
 
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.os.Handler;
 import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -35,12 +38,14 @@ public class LoginActivity extends AppCompatActivity {
     private Response response = null;
     private String responseData = null;
 
+    private Context context;
+    Handler mHandler = new Handler();
     Intent intent = new Intent();
-    private int intDate  = 0;
+    private int intDate = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        SharedPreferences pref1 = getSharedPreferences("data", MODE_PRIVATE);
+        SharedPreferences pref1 = getSharedPreferences("data", Context.MODE_WORLD_READABLE);
         String account = pref1.getString("account", "");
 
         if (!(account == null || account.length() <= 0)) {
@@ -55,53 +60,50 @@ public class LoginActivity extends AppCompatActivity {
         passwordEdit = (EditText) findViewById(R.id.password);
         login = (Button) findViewById(R.id.login);
 
+//        SHAREPREFERENCE_NAME, Context.MODE_PRIVATE |Context.MODE_MULTI_PROCESS);
+
         login.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                if(intDate==0){
-                    final String account = accountEdit.getText().toString();
-                    final String password = passwordEdit.getText().toString();
-                    new Thread(new Runnable() {
-                        @Override
-                        public void run() {
-                            try {
-                                client = new OkHttpClient();
-                                RequestBody requestBody = new FormBody.Builder()
-                                        .add("account", account)
-                                        .add("password", password)
-                                        .build();
-                                Request request = new Request.Builder()
-                                        .url("https://www.91zsc.com/Home/Print/login")
-                                        .post(requestBody)
-                                        .build();
-                                response = client.newCall(request).execute();
-                                responseData = response.body().string();
-                                if (responseData.equals("oo")) {
-                                    Log.e("loginoo", responseData);
-                                    SharedPreferences.Editor editor1 = getSharedPreferences("data", MODE_PRIVATE).edit();
-                                    editor1.putString("acc", account);
-                                    editor1.putString("password", password);
-                                    editor1.apply();
-                                    Intent intent = new Intent(LoginActivity.this, BluetoothActivity.class);
-                                    startActivity(intent);
-                                    finish();
-                                } else {
-                                    Log.e("loginxx", responseData);
-                                }
-
-                            } catch (Exception e) {
-                                e.printStackTrace();
-
+                final String account = accountEdit.getText().toString();
+                final String password = passwordEdit.getText().toString();
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            client = new OkHttpClient();
+                            RequestBody requestBody = new FormBody.Builder()
+                                    .add("account", account)
+                                    .add("password", password)
+                                    .build();
+                            Request request = new Request.Builder()
+                                    .url("https://www.91zsc.com/Home/Print/login")
+                                    .post(requestBody)
+                                    .build();
+                            response = client.newCall(request).execute();
+                            responseData = response.body().string();
+                            if (responseData.equals("oo")) {
+                                Log.e("loginoo", responseData);
+                                SharedPreferences.Editor editor1 =
+                                        getSharedPreferences("data", Context.MODE_PRIVATE | Context.MODE_MULTI_PROCESS).edit();
+                                editor1.putString("acc", account);
+                                editor1.putString("password", password);
+                                editor1.apply();
+                                Intent intent = new Intent(LoginActivity.this, BluetoothActivity.class);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                Log.e("loginxx", responseData);
                             }
+
+                        } catch (Exception e) {
+                            e.printStackTrace();
+
                         }
-                    }).start();
-                    intDate = 1;
-                }else{
-                    sleep(2000);
-                    intDate = 0;
-                }
+                    }
+                }).start();
             }
+
         });
     }
 }

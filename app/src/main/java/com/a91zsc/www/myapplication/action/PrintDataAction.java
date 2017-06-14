@@ -27,8 +27,7 @@ public class PrintDataAction implements OnClickListener {
         this.deviceAddress = deviceAddress;
         this.deviceName = deviceName;
         this.connectState = connectState;
-        this.printDataService = new PrintDataService(this.context,
-                this.deviceAddress);
+        this.printDataService = new PrintDataService(this.context,this.deviceAddress);
         this.initView();
 
     }

@@ -19,12 +19,14 @@ public class BluetoothAction implements OnClickListener {
     private ListView unbondDevices = null;
     private ListView bondDevices = null;
     private Context context = null;
-    private BluetoothService bluetoothService = null;
+    private BluetoothService bluetoothService ;
 
     public BluetoothAction(Context context, ListView unbondDevices,
                            ListView bondDevices, Button searchDevices,
                            Activity activity) {
+
         super();
+        System.out.println("初始化 2");
         this.context = context;
         this.unbondDevices = unbondDevices;
         this.bondDevices = bondDevices;
@@ -36,6 +38,7 @@ public class BluetoothAction implements OnClickListener {
     }
 
     public void setSearchDevices(Button searchDevices) {
+        System.out.println("初始化 4");
         this.searchDevices = searchDevices;
     }
 
@@ -46,25 +49,27 @@ public class BluetoothAction implements OnClickListener {
     /**
      * 初始化界面
      */
-    public void initView() {
+//    public void initView() {
+//
+//        if (this.bluetoothService.isOpen()) {
+//            //Toast.makeText(context, "蓝牙已打开！", Toast.LENGTH_LONG).show();
+//        }
+//        if (!this.bluetoothService.isOpen()) {
+//            //Toast.makeText(context, "蓝牙未打开！请打开蓝牙", Toast.LENGTH_LONG).show();
+//            this.searchDevices.setEnabled(false);
+//        }
+//    }
 
-        if (this.bluetoothService.isOpen()) {
-            //Toast.makeText(context, "蓝牙已打开！", Toast.LENGTH_LONG).show();
-        }
-        if (!this.bluetoothService.isOpen()) {
-            //Toast.makeText(context, "蓝牙未打开！请打开蓝牙", Toast.LENGTH_LONG).show();
-            this.searchDevices.setEnabled(false);
-        }
-    }
-
-    private void searchDevices() {
+    public void searchDevices() {
         bluetoothService.searchDevices();
+
     }
 
     /**
      * 各种按钮的监听
      */
     @Override
+    //Button点击按钮搜索蓝牙设备
     public void onClick(View v) {
         if (v.getId() == R.id.searchDevices) {
             this.searchDevices();
