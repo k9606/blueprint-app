@@ -34,6 +34,8 @@ public class BluetoothService {
     private ListView unbondDevicesListView = null;              //加载未绑定buuletooth 视图
     private ListView bondDevicesListView = null;                //加载绑定buletooth视图
     private toolsFileIO fileIO = new toolsFileIO();
+    private static boolean AA = true;
+
     /**
      * 添加已绑定蓝牙设备到ListView
      */
@@ -195,7 +197,10 @@ public class BluetoothService {
      * @param device
      */
     public void addBandDevices(BluetoothDevice device) {
-        this.driverName = fileIO.getBlueTooth(context);
+        if (AA) {
+            this.driverName = fileIO.getBlueTooth(context);
+            AA = false;
+        }
         if (!this.bondDevices.contains(device)) {
             this.bondDevices.add(device);
         }

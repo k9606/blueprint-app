@@ -5,16 +5,20 @@ import java.io.OutputStream;
 import java.util.UUID;
 
 import android.app.AlertDialog;
+import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.os.IBinder;
 import android.widget.Toast;
 
 import com.a91zsc.www.myapplication.util.toolsFileIO;
 
-public class PrintDataService {
+
+public class PrintDataService extends Service {
     private Context context;
     private String deviceAddress = null;
     private BluetoothAdapter bluetoothAdapter = BluetoothAdapter
@@ -26,24 +30,26 @@ public class PrintDataService {
     private static final UUID uuid = UUID
             .fromString("00001101-0000-1000-8000-00805F9B34FB");
     private boolean isConnection = false;
-//	final String[] items = { "复位打印机", "标准ASCII字体", "压缩ASCII字体", "字体不放大",
-//			"宽高加倍", "取消加粗模式", "选择加粗模式", "取消倒置打印", "选择倒置打印", "取消黑白反显", "选择黑白反显",
-//			"取消顺时针旋转90°", "选择顺时针旋转90°" };
-//	final byte[][] byteCommands = { { 0x1b, 0x40 },// 复位打印机
-//			{ 0x1b, 0x4d, 0x00 },// 标准ASCII字体
-//			{ 0x1b, 0x4d, 0x01 },// 压缩ASCII字体
-//			{ 0x1d, 0x21, 0x00 },// 字体不放大
-//			{ 0x1d, 0x21, 0x11 },// 宽高加倍
-//			{ 0x1b, 0x45, 0x00 },// 取消加粗模式
-//			{ 0x1b, 0x45, 0x01 },// 选择加粗模式
-//			{ 0x1b, 0x7b, 0x00 },// 取消倒置打印
-//			{ 0x1b, 0x7b, 0x01 },// 选择倒置打印
-//			{ 0x1d, 0x42, 0x00 },// 取消黑白反显
-//			{ 0x1d, 0x42, 0x01 },// 选择黑白反显
-//			{ 0x1b, 0x56, 0x00 },// 取消顺时针旋转90°
-//			{ 0x1b, 0x56, 0x01 },// 选择顺时针旋转90°
-//	};
+    Intent intent;
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        return super.onStartCommand(intent, flags, startId);
+    }
 
+
+    /**
+     * 当服务被kill 的时候会启动该服务
+     */
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        context.startService(intent);
+
+    }
     public PrintDataService(Context context, String deviceAddress) {
         super();
         this.context = context;
@@ -122,13 +128,10 @@ public class PrintDataService {
                 outputStream.write(data, 0, data.length);
                 outputStream.flush();
             } catch (IOException e) {
-                Toast.makeText(this.context, "发送失败！", Toast.LENGTH_SHORT)
-                        .show();
             }
         } else {
             Toast.makeText(this.context, "设备未连接，请重新连接！", Toast.LENGTH_SHORT)
                     .show();
-
         }
     }
 

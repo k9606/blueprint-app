@@ -40,6 +40,8 @@ public class BluetoothActivity extends Activity {
     private Button searchDevices;
     private BluetoothDevice bluetoothDevice;
     private static final boolean A = true;
+    private Thread newThread;
+
 
     public void onCreate(Bundle savedInstanceState) {
         SharedPreferences pref = getSharedPreferences("data", MODE_PRIVATE);
@@ -74,9 +76,13 @@ public class BluetoothActivity extends Activity {
      */
     public void onStart() {
         super.onStart();
-        System.out.println("调试1");
-        if(A){
-            bluetoothAdapter.startDiscovery();
+        if (A) {
+            new Thread() {
+                @Override
+                public void run() {
+                    bluetoothAdapter.startDiscovery();
+                }
+            }.start();
         }
         System.out.println("调试2");
     }
