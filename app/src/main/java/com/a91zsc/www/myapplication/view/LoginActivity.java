@@ -16,6 +16,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.a91zsc.www.myapplication.R;
+import com.a91zsc.www.myapplication.util.utilsTools;
 
 import okhttp3.FormBody;
 import okhttp3.OkHttpClient;
@@ -37,16 +38,15 @@ public class LoginActivity extends AppCompatActivity {
 
     private Response response = null;
     private String responseData = null;
-    private ProgressDialog progressDialog;
-    private Context context;
-    Handler mHandler = new Handler();
     Intent intent = new Intent();
-    private int intDate = 0;
+    ProgressDialog progressDialog = null;
+    private Context context;
+    private utilsTools utilsTools = new utilsTools();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         SharedPreferences pref1 = getSharedPreferences("data", MODE_PRIVATE);
-        String account = pref1.getString("account", "");
+        String account = pref1.getString("acc", "");
 
         if (!(account == null || account.length() <= 0)) {
             intent = new Intent(LoginActivity.this, BluetoothActivity.class);
@@ -63,47 +63,47 @@ public class LoginActivity extends AppCompatActivity {
         login.setOnClickListener(new View.OnClickListener() {
                                      @Override
                                      public void onClick(View v) {
-                                         System.out.println("间隔俩秒");
-                                         final String account = accountEdit.getText().toString();
-                                         final String password = passwordEdit.getText().toString();
-                                         new Thread(new Runnable() {
-                                             @Override
-                                             public void run() {
-                                                 try {
-                                                     client = new OkHttpClient();
-                                                     RequestBody requestBody = new FormBody.Builder()
-                                                             .add("account", account)
-                                                             .add("password", password)
-                                                             .build();
-                                                     Request request = new Request.Builder()
-                                                             .url("https://www.91zsc.com/Home/Print/login")
-                                                             .post(requestBody)
-                                                             .build();
-                                                     response = client.newCall(request).execute();
-                                                     responseData = response.body().string();
-                                                     if (responseData.equals("oo")) {
-                                                         Log.e("loginoo", responseData);
-                                                         SharedPreferences.Editor editor1 = getSharedPreferences("data", MODE_PRIVATE).edit();
-                                                         editor1.putString("acc", account);
-                                                         editor1.putString("password", password);
-                                                         editor1.apply();
-                                                         Intent intent = new Intent(LoginActivity.this, BluetoothActivity.class);
-                                                         startActivity(intent);
-                                                         finish();
-                                                     } else {
-                                                         Log.e("loginxx", responseData);
+                                         if (utilsTools.isFastClick()) {
+                                             final String account = accountEdit.getText().toString();
+                                             final String password = passwordEdit.getText().toString();
+                                             new Thread(new Runnable() {
+                                                 @Override
+                                                 public void run() {
+                                                     try {
+                                                         client = new OkHttpClient();
+                                                         RequestBody requestBody = new FormBody.Builder()
+                                                                 .add("account", account)
+                                                                 .add("password", password)
+                                                                 .build();
+                                                         Request request = new Request.Builder()
+                                                                 .url("https://www.91zsc.com/Home/Print/login")
+                                                                 .post(requestBody)
+                                                                 .build();
+                                                         response = client.newCall(request).execute();
+                                                         responseData = response.body().string();
+                                                         if (responseData.equals("oo")) {
+                                                             Log.e("loginoo", responseData);
+                                                             SharedPreferences.Editor editor1 = getSharedPreferences("data", MODE_PRIVATE).edit();
+                                                             editor1.putString("acc", account);
+                                                             editor1.putString("password", password);
+                                                             editor1.apply();
+                                                             Intent intent = new Intent(LoginActivity.this, BluetoothActivity.class);
+                                                             startActivity(intent);
+                                                             finish();
+                                                         } else {
+                                                             Log.e("loginxx", responseData);
+                                                         }
+
+                                                     } catch (Exception e) {
+                                                         e.printStackTrace();
+
                                                      }
-
-                                                 } catch (Exception e) {
-                                                     e.printStackTrace();
-
                                                  }
-                                             }
-                                         }).start();
+                                             }).start();
 
+                                         }
                                      }
                                  }
-
         );
     }
 }

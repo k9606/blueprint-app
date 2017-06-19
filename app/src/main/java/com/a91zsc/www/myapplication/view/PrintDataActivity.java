@@ -72,17 +72,14 @@ public class PrintDataActivity extends AppCompatActivity {
     public static final int takeaway = 0;
     public static final int shopMeal = 1;
     public static final int booked = 2;
-    public String fuck = "1";
+    public String AA = "1";
     public Context context;
-    public TextView deviceNam = null;
     public TextView connectState = null;
     Intent intent = new Intent();
     PrintDataAction printDataAction;
     private toolsFileIO fileIO = new toolsFileIO();
     private IntentFilter intentFilter;
-    private Socket socket = new Socket();
     private NetworkChangeReceiver networkChangeReceiver;
-//    private BroadcastReceiver cmd;
 
 
     /**
@@ -165,7 +162,6 @@ public class PrintDataActivity extends AppCompatActivity {
     //    List<Integer> spacing = demo.getintList();
 
 
-    private TextView deviceName;
 
 
     public void onCreate(Bundle savedInstanceState) {
@@ -173,40 +169,23 @@ public class PrintDataActivity extends AppCompatActivity {
         this.setContentView(R.layout.printdata_layout);
         getSupportActionBar().hide();
         this.context = this;
-        deviceName = (TextView) this.findViewById(R.id.connect_state);
         connectState = (TextView) this.findViewById(R.id.connect_state);
-//        1
-//        connectState = (TextView) this.findViewById(R.id.unbondDevices);
-
         intentFilter = new IntentFilter();
         intentFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
         networkChangeReceiver = new NetworkChangeReceiver();
         registerReceiver(networkChangeReceiver, intentFilter);
 
         printDataAction = new PrintDataAction(this.context,
-                this.getDeviceAddress(), deviceName, connectState);
-        //Edittext
-        EditText printData = (EditText) this.findViewById(R.id.print_data);
+                this.getDeviceAddress(), connectState);
 
         Button send = (Button) this.findViewById(R.id.send);
         Button command = (Button) this.findViewById(R.id.wsStart);
-        //打印机测试
-//        printDataAction.setPrintData(printData);
-
         send.setOnClickListener(printDataAction);
-        command = (Button) findViewById(R.id.wsStart);
         command.setOnClickListener(new View.OnClickListener() {
-            @Override
             public void onClick(View v) {
                 wsC.sendTextMessage("服务器正常");
-                new Thread(new Runnable() {
-                    public void run() {
-
-                    }
-                }).start();
             }
         });
-
         dataProcessing();
     }
 
@@ -217,30 +196,31 @@ public class PrintDataActivity extends AppCompatActivity {
      * @return String
      */
     public String getDeviceAddress() {
-        // 直接通过Context类的getIntent()即可获取Intent
         Intent intent = this.getIntent();
-        // 判断
         if (intent != null) {
-//            ArrayList<String> a = intent.getStringArrayListExtra("data");
-//            System.out.println(a+"STRING>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>");
             return intent.getStringExtra("deviceAddress");
         } else {
             return null;
         }
     }
 
+    /**
+     * 关闭服务
+     */
     @Override
     protected void onDestroy() {
         PrintDataService.disconnect();
         super.onDestroy();
         unregisterReceiver(networkChangeReceiver);
-
         if (wsC.isConnected()) {
             wsC.disconnect();
         }
     }
 
 
+    /**
+     * 服务器断开重连
+     */
     class NetworkChangeReceiver extends BroadcastReceiver {
 
         @Override
@@ -249,7 +229,7 @@ public class PrintDataActivity extends AppCompatActivity {
                     getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo networkInfo = connectionManager.getActiveNetworkInfo();
             if (networkInfo != null && networkInfo.isAvailable()) {
-                if (fuck == "0") {
+                if (AA == "0") {
                     PrintDataActivity.this.recreate();
                 }
 
@@ -350,7 +330,6 @@ public class PrintDataActivity extends AppCompatActivity {
     //public static String i=null;
     //public  static int it =0;
     public void dataProcessing() {
-        //Log.e("xxxxxxxxxxxxxxxx","oooooooooooooooo");
         new Thread() {
             public void run() {
                 try {
@@ -365,14 +344,6 @@ public class PrintDataActivity extends AppCompatActivity {
                         public void onTextMessage(String payload) {
 
                             Log.e("PrintDataActivity", payload);
-
-                            //String i = i+"";
-                            //toastLog(payload);
-                            //printDataAction.printDataService.sendInfo(payload+"\n\n\n\n\n\n");
-
-                            //printDataAction.printDataService.send("json",RESET);
-
-
                             JSONObject jsonObject = JSONObject.fromObject(payload);
                             JSONObject order = jsonObject.getJSONObject("order");
                             String order_type = order.getString("order_type");
@@ -426,22 +397,6 @@ public class PrintDataActivity extends AppCompatActivity {
                                 }
                             }
 
-                            //String type = jsonObject.getString("type");
-                            //String msgi = jsonObject.getString("msg");
-
-                                /*switch (type){
-                                    case "ready":ready(msgi);
-                                        break;
-                                    case "docking":docking(msgi);
-                                        break;
-                                    case "bind":bind(msgi);
-                                        break;
-                                    //case "test":bind(msgi);
-                                        //break;
-                                    default:System.out.println("default");
-                                        break;
-                                }*/
-
                         }
 
 
@@ -453,37 +408,9 @@ public class PrintDataActivity extends AppCompatActivity {
                             String str = formatter.format(curDate);
                             printDataAction.printDataService.sendInfo("断开服务器：" + str + "\n\n\n\n");
                             MediaPlayer mediaPlayer;
-                            mediaPlayer = MediaPlayer.create(PrintDataActivity.this, R.raw.disconnect);
+                            mediaPlayer = MediaPlayer.create(PrintDataActivity.this, R.raw.audio_end);
                             mediaPlayer.start();
-                            fuck = "0";
-
-                            //PrintDataActivity.this.recreate();
-
-//                                new Thread(new Runnable(){
-//                                        public void run(){
-//                                            try{
-//                                                Thread.sleep(30000);
-//                                                Intent intent = getIntent();
-//                                                finish();
-//                                                startActivity(intent);
-//                                            }catch (Exception w){
-//
-//                                            }
-//
-//                                            //handler.sendMessage();
-//                                        }
-//                                }).start();
-
-
-
-                                /*finish();
-                                Intent intent = new Intent(PrintDataActivity.this,PrintDataActivity.class);
-                                startActivity(intent);*/
-                            //onRestart();
-
-                            //startws();
-                            //printDataAction.printDataService.sendInfo("服务器重连："+str+"\n\n\n\n");
-
+                            AA = "0";
                         }
                     });
                 } catch (WebSocketException e) {
@@ -503,12 +430,9 @@ public class PrintDataActivity extends AppCompatActivity {
 
     public void test(String msg) {
         printDataAction.printDataService.sendInfo(msg + "\n\n\n\n");
-
-        toastLog(msg);
     }
 
     public void heartbeat(String msg) {
-        //printDataAction.printDataService.sendInfo(msg+"\n");
         wsC.sendTextMessage("pong");
     }
 
@@ -527,7 +451,6 @@ public class PrintDataActivity extends AppCompatActivity {
                             .add("client_id", client_id)
                             .build();
                     Request request = new Request.Builder()
-                            //.url("http://192.168.3.110/print-test/index.php/Home/index/bind")
                             .url("https://www.91zsc.com/Home/Print/bind")
                             .post(requestBody)
                             .build();
@@ -561,9 +484,6 @@ public class PrintDataActivity extends AppCompatActivity {
         pay_type = (pay_type.equals("现金支付")) ? "(未付款)" : "(已付款)";
         String memo = order.getString("memo");
 
-//        TextView deviceName = (TextView) PrintDataActivity.this.findViewById(R.id.device_name);
-//        TextView connectState = (TextView) PrintDataActivity.this.findViewById(R.id.connect_state);
-//        PrintDataAction printDataAction = new PrintDataAction(PrintDataActivity.this.context,PrintDataActivity.this.getDeviceAddress(),deviceName,connectState);
         printDataAction.printDataService.send("", RESET);
         printDataAction.printDataService.send(shop_name + "\n", ALIGN_CENTER);
         printDataAction.printDataService.send("", RESET);
@@ -585,7 +505,6 @@ public class PrintDataActivity extends AppCompatActivity {
         for (int i = 0; i < order_detail.size(); i++) {
             JSONObject info = order_detail.getJSONObject(i);
             printDataAction.printDataService.send(printThreeData(info.getString("goods_name"), "X " + info.getString("qty") + " ", info.getString("price") + "\n"), DOUBLE_HEIGHT);
-            //System.out.print("菜名：" + info.getString("goods_name") + " "+"数量："+info.getString("qty")+""+"价格:"+info.getString("price")+"\n");
         }
         printDataAction.printDataService.send("", RESET);
         printDataAction.printDataService.send("--------------------------------" + "\n", RESET);
@@ -611,7 +530,6 @@ public class PrintDataActivity extends AppCompatActivity {
 
     public void waimai(JSONObject jsonObject, JSONObject order) {
         String order_type = order.getString("order_type");
-        //String a = order.getString("a");
         String orderno = order.getString("orderno");
         String ordertime = order.getString("ordertime");
         String people = order.getString("people");
@@ -628,9 +546,6 @@ public class PrintDataActivity extends AppCompatActivity {
         JSONObject shop = jsonObject.getJSONObject("shop");
         String shop_name = shop.getString("name");
         String takeout_sales = order.getString("day_no");
-//        TextView deviceName = (TextView) PrintDataActivity.this.findViewById(R.id.device_name);
-//        TextView connectState = (TextView) PrintDataActivity.this.findViewById(R.id.connect_state);
-//        PrintDataAction printDataAction = new PrintDataAction(PrintDataActivity.this.context,PrintDataActivity.this.getDeviceAddress(),deviceName,connectState);
         printDataAction.printDataService.send("", RESET);
         printDataAction.printDataService.send(shop_name + "\n", ALIGN_CENTER);
         printDataAction.printDataService.send("", RESET);
@@ -654,7 +569,6 @@ public class PrintDataActivity extends AppCompatActivity {
         for (int i = 0; i < order_detail.size(); i++) {
             JSONObject info = order_detail.getJSONObject(i);
             printDataAction.printDataService.send(printThreeData(info.getString("goods_name"), "X " + info.getString("qty") + " ", info.getString("price") + "\n"), DOUBLE_HEIGHT);
-            //System.out.print("菜名：" + info.getString("goods_name") + " "+"数量："+info.getString("qty")+""+"价格:"+info.getString("price")+"\n");
         }
         printDataAction.printDataService.send("", RESET);
         printDataAction.printDataService.send("--------------------------------" + "\n", RESET);
@@ -699,9 +613,6 @@ public class PrintDataActivity extends AppCompatActivity {
         String memo = order.getString("memo");
         String pay_type = order.getString("pay_type");
         pay_type = (pay_type == "现金支付") ? "(未付款)" : "(已付款)";
-//        TextView deviceName = (TextView) PrintDataActivity.this.findViewById(R.id.device_name);
-//        TextView connectState = (TextView) PrintDataActivity.this.findViewById(R.id.connect_state);
-//        PrintDataAction printDataAction = new PrintDataAction(PrintDataActivity.this.context,PrintDataActivity.this.getDeviceAddress(),deviceName,connectState);
         printDataAction.printDataService.send("", RESET);
         printDataAction.printDataService.send(shop_name + "\n", ALIGN_CENTER);
         printDataAction.printDataService.send("", RESET);
@@ -726,7 +637,6 @@ public class PrintDataActivity extends AppCompatActivity {
         for (int i = 0; i < order_detail.size(); i++) {
             JSONObject info = order_detail.getJSONObject(i);
             printDataAction.printDataService.send(printThreeData(info.getString("goods_name"), "X " + info.getString("qty") + " ", info.getString("price") + "\n"), DOUBLE_HEIGHT);
-            //System.out.print("菜名：" + info.getString("goods_name") + " "+"数量："+info.getString("qty")+""+"价格:"+info.getString("price")+"\n");
         }
         printDataAction.printDataService.send("", RESET);
         printDataAction.printDataService.send("--------------------------------" + "\n", RESET);
@@ -753,9 +663,6 @@ public class PrintDataActivity extends AppCompatActivity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             AlertDialog isExit = new AlertDialog.Builder(this).create();
-            // 设置对话框标题
-            //isExit.setTitle("系统提示");
-            // 设置对话框消息
             isExit.setMessage("是否退出！退出将中断连接！");
             isExit.setButton("确定", listener);
             isExit.setButton2("取消", listener);
@@ -777,8 +684,8 @@ public class PrintDataActivity extends AppCompatActivity {
                 case AlertDialog.BUTTON_POSITIVE:// "确认"按钮退出程序
                     intent = new Intent(PrintDataActivity.this, BluetoothActivity.class);
                     fileIO.putBlueToothDrive(context, "");
-                    finish();
                     startActivity(intent);
+                    finish();
 
                     break;
                 case AlertDialog.BUTTON_NEGATIVE:// "取消"第二个按钮取消对话框
@@ -789,5 +696,6 @@ public class PrintDataActivity extends AppCompatActivity {
             }
         }
     };
+
 }
 

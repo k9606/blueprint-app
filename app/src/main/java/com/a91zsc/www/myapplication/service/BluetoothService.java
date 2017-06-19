@@ -6,12 +6,15 @@ import java.util.HashMap;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.IBinder;
+import android.support.annotation.Nullable;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -22,10 +25,10 @@ import android.widget.Toast;
 
 import com.a91zsc.www.myapplication.R;
 import com.a91zsc.www.myapplication.util.toolsFileIO;
-
-public class BluetoothService {
+import com.a91zsc.www.myapplication.util.utilsTools;
+public class BluetoothService extends Service{
     private String driverName;
-    private Context context = null;
+    private Context context;
     private BluetoothAdapter bluetoothAdapter = BluetoothAdapter
             .getDefaultAdapter();                               //本地蓝牙适配器
     private ArrayList<BluetoothDevice> unbondDevices = null;    // 用于存放未配对蓝牙设备
@@ -35,6 +38,21 @@ public class BluetoothService {
     private ListView bondDevicesListView = null;                //加载绑定buletooth视图
     private toolsFileIO fileIO = new toolsFileIO();
     private static boolean AA = true;
+    ProgressDialog progressDialog = null;
+    private utilsTools utilsTools = new utilsTools();
+
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
+
 
     /**
      * 添加已绑定蓝牙设备到ListView
@@ -69,6 +87,7 @@ public class BluetoothService {
 
     }
 
+
     /**
      * 添加未绑定蓝牙设备到ListView
      */
@@ -94,6 +113,7 @@ public class BluetoothService {
                     @Override
                     public void onItemClick(AdapterView<?> arg0, View arg1,
                                             int arg2, long arg3) {
+                        if(utilsTools.isFastClick()){
                         try {
                             Method createBondMethod = BluetoothDevice.class
                                     .getMethod("createBond");
@@ -109,7 +129,7 @@ public class BluetoothService {
                             Toast.makeText(context, "配对失败", Toast.LENGTH_SHORT)
                                     .show();
                         }
-
+                        }
                     }
                 });
     }
@@ -135,48 +155,15 @@ public class BluetoothService {
         intentFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
         intentFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         intentFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-        // 注册广播接收器，接收并处理搜索结果
-        System.out.println("调试3");
 
         context.registerReceiver(receiver, intentFilter);
 
     }
 
-    /**
-     * 打开蓝牙
-     */
-    public void openBluetooth(Activity activity) {
-        Intent enableBtIntent = new Intent(
-                BluetoothAdapter.ACTION_REQUEST_ENABLE);
-        activity.startActivityForResult(enableBtIntent, 1);
-
-    }
-
-    /**
-     * 关闭蓝牙
-     */
-    public void closeBluetooth() {
-        this.bluetoothAdapter.disable();
-    }
-
-    /**
-     * 判断蓝牙是否打开
-     *
-     * @return boolean
-     */
-    public boolean isOpen() {
-        return this.bluetoothAdapter.isEnabled();
-
-    }
-
-    /**
-     * 搜索蓝牙设备
-     */
     public void searchDevices() {
-//        this.bondDevices.clear();
-//        this.unbondDevices.clear();
+        this.bondDevices.clear();
+        this.unbondDevices.clear();
 
-        // 寻找蓝牙设备，android会将查找到的设备以广播形式发出去
         this.bluetoothAdapter.startDiscovery();
     }
 
@@ -199,7 +186,7 @@ public class BluetoothService {
     public void addBandDevices(BluetoothDevice device) {
         if (AA) {
             this.driverName = fileIO.getBlueTooth(context);
-            AA = false;
+//            AA = false;
         }
         if (!this.bondDevices.contains(device)) {
             this.bondDevices.add(device);
@@ -211,7 +198,7 @@ public class BluetoothService {
                         "com.a91zsc.www.myapplication.view.PrintDataActivity");
                 intent.putExtra("deviceAddress", device.getAddress());
                 context.startActivity(intent);
-
+                onDestroy();
             }
         }
     }
@@ -221,12 +208,8 @@ public class BluetoothService {
      * 蓝牙广播接收器
      */
     private BroadcastReceiver receiver = new BroadcastReceiver() {
-
-        ProgressDialog progressDialog = null;
-
         @Override
         public void onReceive(Context context, Intent intent) {
-            System.out.println("调试4");
             String action = intent.getAction();
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 //获取BuleTooth搜索到的设备

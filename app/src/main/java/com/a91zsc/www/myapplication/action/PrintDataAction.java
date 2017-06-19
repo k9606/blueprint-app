@@ -15,17 +15,14 @@ import static com.a91zsc.www.myapplication.view.PrintDataActivity.RESET;
 
 public class PrintDataAction implements OnClickListener {
     private Context context = null;
-    private TextView deviceName = null;
     private TextView connectState = null;
     private String deviceAddress = null;
     public PrintDataService printDataService = null;
 
-    public PrintDataAction(Context context, String deviceAddress,
-                           TextView deviceName, TextView connectState) {
+    public PrintDataAction(Context context, String deviceAddress, TextView connectState) {
         super();
         this.context = context;
         this.deviceAddress = deviceAddress;
-        this.deviceName = deviceName;
         this.connectState = connectState;
         this.printDataService = new PrintDataService(this.context,this.deviceAddress);
         this.initView();
@@ -54,7 +51,7 @@ public class PrintDataAction implements OnClickListener {
     public void onClick(View v) {
         if (v.getId() == R.id.send) {
             this.printDataService.sendInfo("打印机服务正常" + "\n\n\n\n");
-        }else{
+        }else if(v.getId() == R.id.wsStart){
             //判断答应及和蓝牙连接是否正常
             Toast.makeText(this.context,"蓝牙尝试连接失败请重连!",Toast.LENGTH_LONG).show();
         }

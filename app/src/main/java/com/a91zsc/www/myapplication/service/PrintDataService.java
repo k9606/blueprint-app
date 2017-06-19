@@ -31,15 +31,11 @@ public class PrintDataService extends Service {
             .fromString("00001101-0000-1000-8000-00805F9B34FB");
     private boolean isConnection = false;
     Intent intent;
+
     @Override
     public IBinder onBind(Intent intent) {
         return null;
     }
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        return super.onStartCommand(intent, flags, startId);
-    }
-
 
     /**
      * 当服务被kill 的时候会启动该服务
@@ -50,11 +46,11 @@ public class PrintDataService extends Service {
         context.startService(intent);
 
     }
+
     public PrintDataService(Context context, String deviceAddress) {
         super();
         this.context = context;
         this.deviceAddress = deviceAddress;
-        //返回相应的被制定的蓝牙连接的远端设备
         this.device = this.bluetoothAdapter.getRemoteDevice(this.deviceAddress);
     }
 
@@ -75,7 +71,6 @@ public class PrintDataService extends Service {
     public boolean connect() {
         if (!this.isConnection) {
             try {
-                //连接蓝牙
                 bluetoothSocket = this.device.createRfcommSocketToServiceRecord(uuid);
                 bluetoothSocket.connect();
                 fileIO.putBlueToothDrive(context, device.toString());
@@ -89,20 +84,6 @@ public class PrintDataService extends Service {
         } else {
             return true;
         }
-    }
-
-    public void contentChon(BluetoothDevice bluetoothDevice) {
-
-        try {
-            bluetoothSocket = bluetoothDevice.createRfcommSocketToServiceRecord(uuid);
-            bluetoothSocket.connect();
-            fileIO.putBlueToothDrive(context, device.toString());
-            outputStream = bluetoothSocket.getOutputStream();
-
-        } catch (Exception e) {
-            Toast.makeText(this.context, "连接失败！", Toast.LENGTH_SHORT).show();
-        }
-
     }
 
     /**
@@ -119,7 +100,12 @@ public class PrintDataService extends Service {
     }
 
 
-    //向打印机BuleToothDivcer发送数据
+    /**
+     * 向蓝牙推送数据
+     *
+     * @param sendData
+     * @param command
+     */
     public void send(String sendData, byte[] command) {
         if (this.isConnection) {
             try {
@@ -135,7 +121,9 @@ public class PrintDataService extends Service {
         }
     }
 
-    //outputStream接收数据
+    /**
+     * outputStream接收数据
+     */
     public void sendInfo(String sendData) {
         if (this.isConnection) {
             try {
@@ -143,8 +131,6 @@ public class PrintDataService extends Service {
                 outputStream.write(data, 0, data.length);
                 outputStream.flush();
             } catch (IOException e) {
-                Toast.makeText(this.context, "发送失败！", Toast.LENGTH_SHORT)
-                        .show();
             }
         } else {
             Toast.makeText(this.context, "设备未连接，请重新连接！", Toast.LENGTH_SHORT)
