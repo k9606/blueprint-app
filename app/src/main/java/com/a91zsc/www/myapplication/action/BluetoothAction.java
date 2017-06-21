@@ -26,7 +26,6 @@ public class BluetoothAction implements OnClickListener {
                            Activity activity) {
 
         super();
-        System.out.println("初始化 2");
         this.context = context;
         this.unbondDevices = unbondDevices;
         this.bondDevices = bondDevices;
@@ -38,7 +37,6 @@ public class BluetoothAction implements OnClickListener {
     }
 
     public void setSearchDevices(Button searchDevices) {
-        System.out.println("初始化 4");
         this.searchDevices = searchDevices;
     }
 

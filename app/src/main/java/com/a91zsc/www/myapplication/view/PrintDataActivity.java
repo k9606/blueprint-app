@@ -52,27 +52,16 @@ import java.net.Socket;
 import java.nio.charset.Charset;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
 
-import android.content.BroadcastReceiver;
-import android.content.Context;
-import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
-import android.view.View;
-import android.widget.Button;
-import android.widget.Toast;
 
 public class PrintDataActivity extends AppCompatActivity {
     public static final int takeaway = 0;
     public static final int shopMeal = 1;
     public static final int booked = 2;
-    public String AA = "1";
+    public boolean AA = false;
     public Context context;
     public TextView connectState = null;
     Intent intent = new Intent();
@@ -229,8 +218,9 @@ public class PrintDataActivity extends AppCompatActivity {
                     getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo networkInfo = connectionManager.getActiveNetworkInfo();
             if (networkInfo != null && networkInfo.isAvailable()) {
-                if (AA == "0") {
+                if (AA) {
                     PrintDataActivity.this.recreate();
+                    AA = false;
                 }
 
             }
@@ -297,12 +287,10 @@ public class PrintDataActivity extends AppCompatActivity {
 
 //########################################socket相关########################################//
 
-    private final String TAG = "PrintDataActivity";
     public static String wsUrl = "ws://www.91zsc.com:2345";
-    public WebSocketConnection wsC = new WebSocketConnection();
+    public static final WebSocketConnection wsC = new WebSocketConnection();
 
     Handler handler = new Handler() {
-
         @Override
         public void handleMessage(Message msg) {
             super.handleMessage(msg);
@@ -410,7 +398,7 @@ public class PrintDataActivity extends AppCompatActivity {
                             MediaPlayer mediaPlayer;
                             mediaPlayer = MediaPlayer.create(PrintDataActivity.this, R.raw.audio_end);
                             mediaPlayer.start();
-                            AA = "0";
+                            AA = true;
                         }
                     });
                 } catch (WebSocketException e) {

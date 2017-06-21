@@ -6,12 +6,11 @@
             <corners android:radius="20dp"/>
         </shape>
     </item>
-    <!-- 主体背景颜色值 -->
-    <!--<item android:bottom="3dp" android:right="3dp">-->
-        <!--<shape>-->
-            <!--<solid android:color="@color/white" />-->
-
-        <!--</shape>-->
-    <!--</item>-->
+     主体背景颜色值
+    <item android:bottom="3dp" android:right="3dp">
+        <shape>
+            <solid android:color="@color/white" />
+        </shape>
+    </item>
 
 </selector>

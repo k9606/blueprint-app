@@ -26,7 +26,8 @@ import android.widget.Toast;
 import com.a91zsc.www.myapplication.R;
 import com.a91zsc.www.myapplication.util.toolsFileIO;
 import com.a91zsc.www.myapplication.util.utilsTools;
-public class BluetoothService extends Service{
+
+public class BluetoothService extends Service {
     private String driverName;
     private Context context;
     private BluetoothAdapter bluetoothAdapter = BluetoothAdapter
@@ -42,6 +43,12 @@ public class BluetoothService extends Service{
     private utilsTools utilsTools = new utilsTools();
 
 
+//    public  void onStart(){
+//        super.
+//    }
+//public void onStartCommand(){
+//    super.onStartCommand();
+//}
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
@@ -76,12 +83,15 @@ public class BluetoothService extends Service{
 
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
+//                if(utilsTools.isFastClick()) {
                 BluetoothDevice device = bondDevices.get(arg2);
                 Intent intent = new Intent();
                 intent.setClassName(context,
                         "com.a91zsc.www.myapplication.view.PrintDataActivity");
                 intent.putExtra("deviceAddress", device.getAddress());
                 context.startActivity(intent);
+                onDestroy();
+//                }
             }
         });
 
@@ -113,7 +123,7 @@ public class BluetoothService extends Service{
                     @Override
                     public void onItemClick(AdapterView<?> arg0, View arg1,
                                             int arg2, long arg3) {
-                        if(utilsTools.isFastClick()){
+//                        if(utilsTools.isFastClick()){
                         try {
                             Method createBondMethod = BluetoothDevice.class
                                     .getMethod("createBond");
@@ -129,7 +139,7 @@ public class BluetoothService extends Service{
                             Toast.makeText(context, "配对失败", Toast.LENGTH_SHORT)
                                     .show();
                         }
-                        }
+//                        }
                     }
                 });
     }
@@ -230,19 +240,7 @@ public class BluetoothService extends Service{
                 addBondDevicesToListView();
                 bluetoothAdapter.cancelDiscovery();
             }
-            if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
-                if (bluetoothAdapter.getState() == BluetoothAdapter.STATE_ON) {
-                    Toast.makeText(context, "蓝牙已打开！", Toast.LENGTH_LONG).show();
-                    searchDevices.setEnabled(true);
-                    bondDevicesListView.setEnabled(true);
-                    unbondDevicesListView.setEnabled(true);
-                } else if (bluetoothAdapter.getState() == BluetoothAdapter.STATE_OFF) {
-                    Toast.makeText(context, "蓝牙未打开！请打开蓝牙！", Toast.LENGTH_LONG).show();
-                    searchDevices.setEnabled(false);
-                    bondDevicesListView.setEnabled(false);
-                    unbondDevicesListView.setEnabled(false);
-                }
-            }
+
 
         }
 

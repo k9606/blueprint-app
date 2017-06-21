@@ -160,16 +160,34 @@
                 android:layout_weight="1"
                 android:gravity="center">
 
+
                 <ListView
                     android:id="@+id/bondDevices"
                     android:layout_width="200dp"
                     android:layout_height="match_parent"
+                    android:layout_margin="10dp"
                     android:divider="#00000000"
                     android:dividerHeight="4pt"
-                    >
-                </ListView>
+                    />
 
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
+    <LinearLayout
+        android:id="@+id/deitionlinear"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:gravity="center"
+        >
+
+        <Button
+            android:id="@+id/deition"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:textSize="14sp"
+            android:textColor="@color/gray"
+            android:background="@drawable/buttoe_edition"/>
+    </LinearLayout>
+
 </LinearLayout>
