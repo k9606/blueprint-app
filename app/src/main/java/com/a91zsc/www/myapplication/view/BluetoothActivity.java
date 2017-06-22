@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
+import android.content.res.Configuration;
 import android.graphics.Color;
 import android.media.Image;
 import android.net.Uri;
@@ -83,7 +84,9 @@ public class BluetoothActivity extends Activity {
     }
 
 
-    //初始化点击事件click
+    /**
+     * 初始化点击事件
+     */
     private void initListener() {
         this.searchDevices = (Button) this.findViewById(R.id.searchDevices);
         ListView unbondDevices = (ListView) this.findViewById(R.id.unbondDevices);
@@ -128,7 +131,7 @@ public class BluetoothActivity extends Activity {
 
 
     /**
-     * 获取服务器上的版本号 更新地址
+     * 版本更新
      *
      * @return
      */
@@ -209,5 +212,9 @@ public class BluetoothActivity extends Activity {
             deition.setTextColor(Color.parseColor("#FFFFFF"));
 //            deition.setTextColor(@c);
         }
+    }
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
     }
 }

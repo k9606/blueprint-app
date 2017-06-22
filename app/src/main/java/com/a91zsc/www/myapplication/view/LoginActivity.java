@@ -39,8 +39,6 @@ public class LoginActivity extends AppCompatActivity {
     private Response response = null;
     private String responseData = null;
     Intent intent = new Intent();
-    ProgressDialog progressDialog = null;
-    private Context context;
     private utilsTools utilsTools = new utilsTools();
 
     @Override

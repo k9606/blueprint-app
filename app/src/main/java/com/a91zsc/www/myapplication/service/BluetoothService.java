@@ -40,25 +40,18 @@ public class BluetoothService extends Service {
     private toolsFileIO fileIO = new toolsFileIO();
     private static boolean AA = true;
     ProgressDialog progressDialog = null;
-    private utilsTools utilsTools = new utilsTools();
 
-
-//    public  void onStart(){
-//        super.
-//    }
-//public void onStartCommand(){
-//    super.onStartCommand();
-//}
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
+    public void searchDevices() {
+//        this.bondDevices.clear();
+//        this.unbondDevices.clear();
+        System.out.println("Sys");
+        this.bluetoothAdapter.startDiscovery();
+        System.out.println("Sys");
     }
 
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-    }
+
+
+
 
 
     /**
@@ -128,11 +121,8 @@ public class BluetoothService extends Service {
                             Method createBondMethod = BluetoothDevice.class
                                     .getMethod("createBond");
                             createBondMethod.invoke(unbondDevices.get(arg2));
-                            // 将绑定好的设备添加的已绑定list集合
                             bondDevices.add(unbondDevices.get(arg2));
-                            // 将绑定好的设备从未绑定list集合中移除
                             unbondDevices.remove(arg2);
-
                             addBondDevicesToListView();
                             addUnbondDevicesToListView();
                         } catch (Exception e) {
@@ -170,12 +160,6 @@ public class BluetoothService extends Service {
 
     }
 
-    public void searchDevices() {
-        this.bondDevices.clear();
-        this.unbondDevices.clear();
-
-        this.bluetoothAdapter.startDiscovery();
-    }
 
     /**
      * 添加未绑定蓝牙设备到list集合
@@ -217,11 +201,13 @@ public class BluetoothService extends Service {
     /**
      * 蓝牙广播接收器
      */
-    private BroadcastReceiver receiver = new BroadcastReceiver() {
+    public BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+
             String action = intent.getAction();
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+                System.out.println("123445567");
                 //获取BuleTooth搜索到的设备
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 if (device.getBondState() == BluetoothDevice.BOND_BONDED) {
@@ -245,5 +231,16 @@ public class BluetoothService extends Service {
         }
 
     };
+
+    @Nullable
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+    }
 
 }

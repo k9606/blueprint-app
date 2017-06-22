@@ -58,10 +58,11 @@ public class BluetoothAction implements OnClickListener {
 //        }
 //    }
 
-    public void searchDevices() {
-        bluetoothService.searchDevices();
-
-    }
+//    public void searchDevices() {
+//        System.out.println("点击事件");
+//
+//
+//    }
 
     /**
      * 各种按钮的监听
@@ -70,7 +71,7 @@ public class BluetoothAction implements OnClickListener {
     //Button点击按钮搜索蓝牙设备
     public void onClick(View v) {
         if (v.getId() == R.id.searchDevices) {
-            this.searchDevices();
+            bluetoothService.searchDevices();
         }
     }
 
