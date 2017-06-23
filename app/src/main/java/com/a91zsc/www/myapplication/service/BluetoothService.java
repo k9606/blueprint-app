@@ -34,26 +34,16 @@ public class BluetoothService extends Service {
             .getDefaultAdapter();                               //本地蓝牙适配器
     private ArrayList<BluetoothDevice> unbondDevices = null;    // 用于存放未配对蓝牙设备
     private ArrayList<BluetoothDevice> bondDevices = null;      // 用于存放已配对蓝牙设备
-    private Button searchDevices = null;                        //点击搜索按钮
     private ListView unbondDevicesListView = null;              //加载未绑定buuletooth 视图
     private ListView bondDevicesListView = null;                //加载绑定buletooth视图
     private toolsFileIO fileIO = new toolsFileIO();
     private static boolean AA = true;
-    ProgressDialog progressDialog = null;
+    Intent intent;
+    private Boolean aboolean = true;
 
     public void searchDevices() {
-//        this.bondDevices.clear();
-//        this.unbondDevices.clear();
-        System.out.println("Sys");
         this.bluetoothAdapter.startDiscovery();
-        System.out.println("Sys");
     }
-
-
-
-
-
-
     /**
      * 添加已绑定蓝牙设备到ListView
      */
@@ -76,15 +66,16 @@ public class BluetoothService extends Service {
 
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
-//                if(utilsTools.isFastClick()) {
-                BluetoothDevice device = bondDevices.get(arg2);
-                Intent intent = new Intent();
-                intent.setClassName(context,
-                        "com.a91zsc.www.myapplication.view.PrintDataActivity");
-                intent.putExtra("deviceAddress", device.getAddress());
-                context.startActivity(intent);
-                onDestroy();
-//                }
+                if(utilsTools.isFastClick()) {
+                    BluetoothDevice device = bondDevices.get(arg2);
+                    Intent intent = new Intent();
+                    intent.setClassName(context,
+                            "com.a91zsc.www.myapplication.view.PrintDataActivity");
+                    intent.putExtra("deviceAddress", device.getAddress());
+                    context.startActivity(intent);
+                    bluetoothAdapter.cancelDiscovery();
+                    onDestroy();
+                }
             }
         });
 
@@ -116,7 +107,6 @@ public class BluetoothService extends Service {
                     @Override
                     public void onItemClick(AdapterView<?> arg0, View arg1,
                                             int arg2, long arg3) {
-//                        if(utilsTools.isFastClick()){
                         try {
                             Method createBondMethod = BluetoothDevice.class
                                     .getMethod("createBond");
@@ -129,21 +119,19 @@ public class BluetoothService extends Service {
                             Toast.makeText(context, "配对失败", Toast.LENGTH_SHORT)
                                     .show();
                         }
-//                        }
                     }
                 });
     }
 
 
     public BluetoothService(Context context, ListView unbondDevicesListView,
-                            ListView bondDevicesListView, Button searchDevices) {
+                            ListView bondDevicesListView) {
         this.context = context;
         this.unbondDevicesListView = unbondDevicesListView;
         this.bondDevicesListView = bondDevicesListView;
-        // this.bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         this.unbondDevices = new ArrayList<BluetoothDevice>();
         this.bondDevices = new ArrayList<BluetoothDevice>();
-        this.searchDevices = searchDevices;
+        this.searchDevices();
         this.initIntentFilter();
 
     }
@@ -151,13 +139,18 @@ public class BluetoothService extends Service {
     private void initIntentFilter() {
         // 设置广播信息过滤
         IntentFilter intentFilter = new IntentFilter();
+        //说明：蓝牙扫描时，扫描到任一远程蓝牙设备时，会发送此广播。
         intentFilter.addAction(BluetoothDevice.ACTION_FOUND);
+        //蓝牙扫描过程开始
         intentFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
+        //蓝牙扫描过程结束
         intentFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        intentFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        //蓝牙状态值发生改变
+//        intentFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
 
         context.registerReceiver(receiver, intentFilter);
-
+        int i = 0;
+        System.out.println(i++);
     }
 
 
@@ -180,14 +173,14 @@ public class BluetoothService extends Service {
     public void addBandDevices(BluetoothDevice device) {
         if (AA) {
             this.driverName = fileIO.getBlueTooth(context);
-//            AA = false;
         }
         if (!this.bondDevices.contains(device)) {
             this.bondDevices.add(device);
         }
         if (driverName != "") {
             if (device.toString().equals(driverName)) {
-                Intent intent = new Intent();
+                bluetoothAdapter.cancelDiscovery();
+                intent = new Intent();
                 intent.setClassName(context,
                         "com.a91zsc.www.myapplication.view.PrintDataActivity");
                 intent.putExtra("deviceAddress", device.getAddress());
@@ -204,32 +197,33 @@ public class BluetoothService extends Service {
     public BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-
             String action = intent.getAction();
             if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                System.out.println("123445567");
-                //获取BuleTooth搜索到的设备
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                if (device.getBondState() == BluetoothDevice.BOND_BONDED) {
-                    addBandDevices(device);
-                } else {
-                    addUnbondDevices(device);
+                int deviceType = device.getBluetoothClass().getMajorDeviceClass();
+                if(Integer.toString(deviceType).equals("1536")){
+                    if(device.getBondState() == BluetoothDevice.BOND_BONDED){
+                        addBandDevices(device);
+                        addBondDevicesToListView();
+                    }else {
+                        addUnbondDevices(device);
+                        addUnbondDevicesToListView();
+                    }
                 }
             } else if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
-                progressDialog = ProgressDialog.show(context, null,
-                        "稍等", false);
+                if(aboolean){
+                    Toast.makeText(context,"正在搜索.....",Toast.LENGTH_SHORT).show();
+                    aboolean= false;
 
-            } else if (BluetoothAdapter.ACTION_DISCOVERY_FINISHED
+                }
+            }else if(BluetoothAdapter.ACTION_DISCOVERY_FINISHED
                     .equals(action)) {
-                progressDialog.dismiss();
-                addUnbondDevicesToListView();
-                addBondDevicesToListView();
                 bluetoothAdapter.cancelDiscovery();
+                int i = 0;
+                System.out.println(i++);
+                aboolean = true;
             }
-
-
         }
-
     };
 
     @Nullable
@@ -241,6 +235,6 @@ public class BluetoothService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
+        System.out.println("暂停服务+1");
     }
-
 }

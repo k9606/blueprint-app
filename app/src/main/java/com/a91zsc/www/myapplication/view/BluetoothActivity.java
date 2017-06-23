@@ -22,6 +22,7 @@ import android.widget.Toast;
 
 import com.a91zsc.www.myapplication.R;
 import com.a91zsc.www.myapplication.action.BluetoothAction;
+import com.a91zsc.www.myapplication.service.BluetoothService;
 import com.a91zsc.www.myapplication.util.XMLTool;
 
 import net.sf.json.JSONObject;
@@ -33,23 +34,23 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class BluetoothActivity extends Activity {
-
+    private BluetoothAction bluetoothAction;
     LinearLayout linearLayout;
     public Context context;
-    BluetoothAdapter mBluetoothAdapter;
-    private Button searchDevices;
+    private BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     private String url = "";
     Uri uri = null;
+    public static Button serblue;
     public static Button deition;
-
+    private BluetoothService bluetoothService ;
     public void onCreate(Bundle savedInstanceState) {
-        this.mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         super.onCreate(savedInstanceState);
         this.context = this;
         openBlue();
         setContentView(R.layout.bluetooth_layout);
         this.initListener();
-        testCode();
+        deitionCode();
+
         this.linearLayout = (LinearLayout) findViewById(R.id.deitionlinear);
         deition = (Button) findViewById(R.id.deition);
         deition.setOnClickListener(new View.OnClickListener() {
@@ -57,8 +58,18 @@ public class BluetoothActivity extends Activity {
                 sendXml();
             }
         });
+        serblue = (Button) findViewById(R.id.searchDevices);
+        serblue.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                System.out.println("Hello Wold人！");
+                bluetoothService.searchDevices();
+            }
+        });
     }
-
+//
+//    public void onStart() {
+//        super.onStart();
+//    }
 
     public void sendXml() {
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
@@ -72,30 +83,21 @@ public class BluetoothActivity extends Activity {
     }
 
     public void openBlue() {
-        if (mBluetoothAdapter.isEnabled()) {
-        } else {
+
             mBluetoothAdapter.enable();
-        }
     }
 
-    public void onStart() {
-        super.onStart();
-        mBluetoothAdapter.startDiscovery();
-    }
+
 
 
     /**
      * 初始化点击事件
      */
     private void initListener() {
-        this.searchDevices = (Button) this.findViewById(R.id.searchDevices);
+        Button button = (Button) findViewById(R.id.searchDevices);
         ListView unbondDevices = (ListView) this.findViewById(R.id.unbondDevices);
         ListView bondDevices = (ListView) this.findViewById(R.id.bondDevices);
-        BluetoothAction bluetoothAction = new BluetoothAction(this.context,
-                unbondDevices, bondDevices, searchDevices,
-                BluetoothActivity.this);
-        bluetoothAction.setSearchDevices(searchDevices);
-        searchDevices.setOnClickListener(bluetoothAction);
+        this.bluetoothService = new BluetoothService(this.context,unbondDevices,bondDevices);
     }
 
     //屏蔽返回键的代码:
@@ -135,7 +137,7 @@ public class BluetoothActivity extends Activity {
      *
      * @return
      */
-    public String testCode() {
+    public String deitionCode() {
         new Thread() {
             public void run() {
                 String strUrl = "https://third.91zsc.com/PrintApp/version.json";
@@ -205,16 +207,12 @@ public class BluetoothActivity extends Activity {
             this.url = jsonObject.getString("downloadUrl");
             uri = Uri.parse(url);
 
-            deition.setText("  版本更新");
+            deition.setText("版本更新"+jsonObject.getString("versionName"));
             deition.setEnabled(true);
 //            deition.setBackgroundResource(R.drawable.button_edition_red);
             linearLayout.setBackgroundColor(Color.parseColor("#00FF00"));
             deition.setTextColor(Color.parseColor("#FFFFFF"));
 //            deition.setTextColor(@c);
         }
-    }
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
     }
 }

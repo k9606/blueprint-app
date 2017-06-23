@@ -11,68 +11,39 @@ import android.widget.Toast;
 import com.a91zsc.www.myapplication.service.BluetoothService;
 import com.a91zsc.www.myapplication.R;
 
-public class BluetoothAction implements OnClickListener {
+import static android.R.attr.onClick;
 
-    private Button searchDevices = null;
-    private Activity activity = null;
+public class BluetoothAction implements OnClickListener{
+
 
     private ListView unbondDevices = null;
     private ListView bondDevices = null;
     private Context context = null;
+    private Button button = null;
     private BluetoothService bluetoothService ;
 
+
+
     public BluetoothAction(Context context, ListView unbondDevices,
-                           ListView bondDevices, Button searchDevices,
-                           Activity activity) {
+                           ListView bondDevices,Button button) {
 
         super();
         this.context = context;
         this.unbondDevices = unbondDevices;
         this.bondDevices = bondDevices;
-        this.searchDevices = searchDevices;
-        this.activity = activity;
+        this.button = button;
         this.bluetoothService = new BluetoothService(this.context,
-                this.unbondDevices, this.bondDevices,
-                this.searchDevices);
+                this.unbondDevices, this.bondDevices);
     }
-
-    public void setSearchDevices(Button searchDevices) {
-        this.searchDevices = searchDevices;
-    }
-
-    public void setUnbondDevices(ListView unbondDevices) {
-        this.unbondDevices = unbondDevices;
-    }
-
-    /**
-     * 初始化界面
-     */
-//    public void initView() {
-//
-//        if (this.bluetoothService.isOpen()) {
-//            //Toast.makeText(context, "蓝牙已打开！", Toast.LENGTH_LONG).show();
-//        }
-//        if (!this.bluetoothService.isOpen()) {
-//            //Toast.makeText(context, "蓝牙未打开！请打开蓝牙", Toast.LENGTH_LONG).show();
-//            this.searchDevices.setEnabled(false);
-//        }
-//    }
-
-//    public void searchDevices() {
-//        System.out.println("点击事件");
-//
-//
-//    }
-
-    /**
-     * 各种按钮的监听
-     */
-    @Override
-    //Button点击按钮搜索蓝牙设备
     public void onClick(View v) {
         if (v.getId() == R.id.searchDevices) {
-            bluetoothService.searchDevices();
+            System.out.println("Hello world!");
+            this.searchDevices();
         }
     }
 
+
+    private void searchDevices() {
+        bluetoothService.searchDevices();
+    }
 }

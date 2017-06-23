@@ -31,10 +31,8 @@
             </intent-filter>
         </activity>
 
-        <activity android:name="com.a91zsc.www.myapplication.view.BluetoothActivity"
-                  android:configChanges="orientation"></activity>
-        <activity android:name=".view.PrintDataActivity"
-                  android:configChanges="orientation" ></activity>
+        <activity android:name="com.a91zsc.www.myapplication.view.BluetoothActivity"></activity>
+        <activity android:name=".view.PrintDataActivity"></activity>
     </application>
 
     <service android:name="com.a91zsc.www.myapplication.service.BluetoothService">

@@ -1,9 +1,7 @@
 package com.a91zsc.www.myapplication.view;
 
-import android.app.Activity;
 import android.app.AlertDialog;
-import android.app.DownloadManager;
-import android.bluetooth.BluetoothDevice;
+import android.net.NetworkInfo.State;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -12,11 +10,9 @@ import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.support.v7.view.menu.ExpandedMenuView;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.TextView;
 
 import de.tavendo.autobahn.WebSocketConnection;
@@ -28,14 +24,9 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-import android.support.v7.app.ActionBarActivity;
-import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.widget.Button;
 import android.widget.Toast;
 
 import com.a91zsc.www.myapplication.R;
@@ -44,7 +35,6 @@ import com.a91zsc.www.myapplication.service.PrintDataService;
 import com.a91zsc.www.myapplication.util.toolsFileIO;
 
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
@@ -70,6 +60,7 @@ public class PrintDataActivity extends AppCompatActivity {
     private toolsFileIO fileIO = new toolsFileIO();
     private IntentFilter intentFilter;
     private NetworkChangeReceiver networkChangeReceiver;
+    private Date curDate;
 
 
     /**
@@ -213,15 +204,25 @@ public class PrintDataActivity extends AppCompatActivity {
      */
     class NetworkChangeReceiver extends BroadcastReceiver {
 
+
         @Override
         public void onReceive(Context context, Intent intent) {
+            State wifiState = null;
+            State mobileState = null;
             ConnectivityManager connectionManager = (ConnectivityManager)
                     getSystemService(Context.CONNECTIVITY_SERVICE);
+            //判断网络wifi网络状况
+            wifiState = connectionManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState();
+            //判断手机网络状态
+            mobileState = connectionManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState();
             NetworkInfo networkInfo = connectionManager.getActiveNetworkInfo();
-            if (networkInfo != null && networkInfo.isAvailable()) {
+
+            if (wifiState != null && mobileState != null
+                    && State.CONNECTED != wifiState
+                    && State.CONNECTED == mobileState) {
                 if (AA) {
-                    PrintDataActivity.this.recreate();
                     AA = false;
+                    PrintDataActivity.this.recreate();
                 }
 
             }
@@ -316,16 +317,11 @@ public class PrintDataActivity extends AppCompatActivity {
         Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
     }
 
-    //public static String i=null;
-    //public  static int it =0;
     public void dataProcessing() {
-        new Thread() {
-            public void run() {
                 try {
                     wsC.connect(wsUrl, new WebSocketHandler() {
                         @Override
                         public void onOpen() {
-                            toastLog("客户端准备");
                         }
 
                         //根据数据进行判断数据发送格式
@@ -391,9 +387,8 @@ public class PrintDataActivity extends AppCompatActivity {
 
                         @Override
                         public void onClose(int code, String reason) {
-                            toastLog("断开服务器");
                             SimpleDateFormat formatter = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss ");
-                            Date curDate = new Date(System.currentTimeMillis());//获取当前时间
+                            curDate = new Date(System.currentTimeMillis());//获取当前时间
                             String str = formatter.format(curDate);
                             printDataAction.printDataService.sendInfo("断开服务器：" + str + "\n\n\n\n");
                             MediaPlayer mediaPlayer;
@@ -405,8 +400,6 @@ public class PrintDataActivity extends AppCompatActivity {
                 } catch (WebSocketException e) {
                     e.printStackTrace();
                 }
-            }
-        }.start();
     }
 
     public void ready(String msg) {
@@ -652,7 +645,7 @@ public class PrintDataActivity extends AppCompatActivity {
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             AlertDialog isExit = new AlertDialog.Builder(this).create();
-            isExit.setMessage("是否退出！退出将中断连接！");
+            isExit.setMessage("确认退出?退出将导致连接中断！");
             isExit.setButton("确定", listener);
             isExit.setButton2("取消", listener);
             isExit.show();
@@ -685,10 +678,5 @@ public class PrintDataActivity extends AppCompatActivity {
             }
         }
     };
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-    }
-
 }
 
