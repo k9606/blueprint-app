@@ -24,8 +24,10 @@ import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
 import com.a91zsc.www.myapplication.R;
+import com.a91zsc.www.myapplication.util.XMLTool;
 import com.a91zsc.www.myapplication.util.toolsFileIO;
 import com.a91zsc.www.myapplication.util.utilsTools;
+import com.a91zsc.www.myapplication.view.BluetoothActivity;
 
 public class BluetoothService extends Service {
     private String driverName;
@@ -40,6 +42,7 @@ public class BluetoothService extends Service {
     private static boolean AA = true;
     Intent intent;
     private Boolean aboolean = true;
+    XMLTool xmlTool = new XMLTool();
 
     public void searchDevices() {
             bluetoothAdapter.cancelDiscovery();
@@ -202,7 +205,8 @@ public class BluetoothService extends Service {
 
             if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
                 if(aboolean) {
-                    Toast.makeText(context, "正在搜索.....", Toast.LENGTH_SHORT).show();
+                    Toast toast=Toast.makeText(context, "这是可以随意设置时间的Toast", Toast.LENGTH_LONG);
+                    xmlTool.showMyToast(toast,6000);
                     aboolean = false;
                 }
                 }else if (BluetoothDevice.ACTION_FOUND.equals(action)) {

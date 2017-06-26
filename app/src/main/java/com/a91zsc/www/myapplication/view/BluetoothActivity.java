@@ -148,7 +148,7 @@ public class BluetoothActivity extends Activity {
                     //设置对象链接超时
                     urlConnection.setReadTimeout(5000);
                     //获取对象获取超时
-                    urlConnection.setRequestMethod("GET");
+                    urlConnection.setRequestMethod("GET");erssssssssssssssssss
                     //设置本次请求方式
                     urlConnection.connect();
                     //链接
