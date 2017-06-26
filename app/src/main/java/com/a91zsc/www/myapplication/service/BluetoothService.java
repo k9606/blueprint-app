@@ -42,6 +42,8 @@ public class BluetoothService extends Service {
     private Boolean aboolean = true;
 
     public void searchDevices() {
+            bluetoothAdapter.cancelDiscovery();
+        System.out.println("991234");
         this.bluetoothAdapter.startDiscovery();
     }
     /**
@@ -149,8 +151,7 @@ public class BluetoothService extends Service {
 //        intentFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
 
         context.registerReceiver(receiver, intentFilter);
-        int i = 0;
-        System.out.println(i++);
+        System.out.println("设置广播信息过滤");
     }
 
 
@@ -198,7 +199,13 @@ public class BluetoothService extends Service {
         @Override
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-            if (BluetoothDevice.ACTION_FOUND.equals(action)) {
+
+            if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
+                if(aboolean) {
+                    Toast.makeText(context, "正在搜索.....", Toast.LENGTH_SHORT).show();
+                    aboolean = false;
+                }
+                }else if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 int deviceType = device.getBluetoothClass().getMajorDeviceClass();
                 if(Integer.toString(deviceType).equals("1536")){
@@ -210,17 +217,9 @@ public class BluetoothService extends Service {
                         addUnbondDevicesToListView();
                     }
                 }
-            } else if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
-                if(aboolean){
-                    Toast.makeText(context,"正在搜索.....",Toast.LENGTH_SHORT).show();
-                    aboolean= false;
-
-                }
-            }else if(BluetoothAdapter.ACTION_DISCOVERY_FINISHED
-                    .equals(action)) {
+            } else{
                 bluetoothAdapter.cancelDiscovery();
-                int i = 0;
-                System.out.println(i++);
+                System.out.println("判断搜索断开");
                 aboolean = true;
             }
         }

@@ -39,6 +39,9 @@ import android.support.v7.app.AppCompatActivity;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
 
+import java.io.IOException;
+import java.io.InterruptedIOException;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import java.nio.charset.Charset;
 import java.sql.Date;
@@ -61,7 +64,9 @@ public class PrintDataActivity extends AppCompatActivity {
     private IntentFilter intentFilter;
     private NetworkChangeReceiver networkChangeReceiver;
     private Date curDate;
-
+    long chenkDelay = 10;
+    long keepAliveDelay = 60000;
+    private long lostSendTime;
 
     /**
      * 复位打印机
@@ -334,23 +339,24 @@ public class PrintDataActivity extends AppCompatActivity {
                             String order_type = order.getString("order_type");
                             //String msg_service = order.getString("msg");
                             if (order.has("msg")) {
+                                System.out.println(order_type+"11111111111111111111111");
                                 String msg_service = order.getString("msg");
 
                                 switch (order_type) {
                                     case "ready":
-                                        ready(msg_service);
+                                        ready();
                                         break;
                                     case "docking":
-                                        docking(msg_service);
+                                        docking();
                                         break;
                                     case "bind":
                                         bind(msg_service);
                                         break;
                                     case "test":
-                                        test(msg_service);
+                                        test();
                                         break;
                                     case "heartbeat":
-                                        heartbeat(msg_service);
+                                        heartbeat();
                                         break;
                                     default:
                                         System.out.println("default");
@@ -402,20 +408,50 @@ public class PrintDataActivity extends AppCompatActivity {
                 }
     }
 
-    public void ready(String msg) {
-        printDataAction.printDataService.sendInfo(msg + "\n");
+    public void ready() {
+        printDataAction.printDataService.sendInfo("" + "\n");
     }
 
-    public void docking(String msg) {
-        printDataAction.printDataService.sendInfo(msg + "\n");
+    public void docking() {
+        printDataAction.printDataService.sendInfo("" + "\n");
     }
 
-    public void test(String msg) {
-        printDataAction.printDataService.sendInfo(msg + "\n\n\n\n");
+    public void test() {
+        printDataAction.printDataService.sendInfo("" + "\n\n\n\n");
     }
 
-    public void heartbeat(String msg) {
+    public void heartbeat() {
+        this.lostSendTime = System.currentTimeMillis();
         wsC.sendTextMessage("pong");
+//        try {
+
+//            Socket socket = new Socket("ws://www.91zsc.com:2345", 80);
+//            socket.connect(wsUrl,80);
+//        }catch (Exception i){
+//
+//        }
+//        while (true){
+//            long nowTimeDate=System.currentTimeMillis();
+//            if(nowTimeDate - lostSendTime>keepAliveDelay){
+//                try{
+////                    wsC.sendTextMessage("M2AOO_CMN98_10092_EED33");
+//                    wsC.sendTextMessage("pong");
+//            }catch (Exception i){
+//                    i.printStackTrace();
+//
+//            }
+//            this.lostSendTime = System.currentTimeMillis();
+//            }else{
+//                try {
+//
+//                }catch (Exception e){
+//                    e.printStackTrace();
+//                }
+//
+//            }
+//
+//        }
+
     }
 
     public void bind(String msg) {
@@ -668,7 +704,6 @@ public class PrintDataActivity extends AppCompatActivity {
                     fileIO.putBlueToothDrive(context, "");
                     startActivity(intent);
                     finish();
-
                     break;
                 case AlertDialog.BUTTON_NEGATIVE:// "取消"第二个按钮取消对话框
                     break;

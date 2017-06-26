@@ -206,7 +206,6 @@ public class BluetoothActivity extends Activity {
         } else {
             this.url = jsonObject.getString("downloadUrl");
             uri = Uri.parse(url);
-
             deition.setText("版本更新"+jsonObject.getString("versionName"));
             deition.setEnabled(true);
 //            deition.setBackgroundResource(R.drawable.button_edition_red);
