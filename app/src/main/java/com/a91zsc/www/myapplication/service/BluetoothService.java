@@ -205,7 +205,7 @@ public class BluetoothService extends Service {
 
             if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
                 if(aboolean) {
-                    Toast toast=Toast.makeText(context, "这是可以随意设置时间的Toast", Toast.LENGTH_LONG);
+                    Toast toast=Toast.makeText(context, "正在搜索", Toast.LENGTH_LONG);
                     xmlTool.showMyToast(toast,6000);
                     aboolean = false;
                 }

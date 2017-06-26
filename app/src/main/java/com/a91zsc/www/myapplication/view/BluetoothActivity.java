@@ -142,13 +142,14 @@ public class BluetoothActivity extends Activity {
             public void run() {
                 String strUrl = "https://third.91zsc.com/PrintApp/version.json";
                 try {
+                    System.out.println("111111111111111111111111111111111111111111111111111111111111111111");
                     URL url = new URL(strUrl);
                     HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
                     urlConnection.setConnectTimeout(5000);
                     //设置对象链接超时
                     urlConnection.setReadTimeout(5000);
                     //获取对象获取超时
-                    urlConnection.setRequestMethod("GET");erssssssssssssssssss
+                    urlConnection.setRequestMethod("GET");
                     //设置本次请求方式
                     urlConnection.connect();
                     //链接
