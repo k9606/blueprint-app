@@ -9,9 +9,11 @@ import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothSocket;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.os.IBinder;
 import android.widget.Toast;
 
@@ -138,5 +140,17 @@ public class PrintDataService extends Service {
 
         }
     }
+
+    /**
+     * 进程拉活
+     * @param ietent
+     * @param flags
+     * @param starId
+     * @return
+     */
+    public int onStartCommand(Intent ietent,int flags,int starId){
+        return Service.START_STICKY;
+    }
+
 
 }

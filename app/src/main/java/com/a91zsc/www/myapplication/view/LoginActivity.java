@@ -80,7 +80,6 @@ public class LoginActivity extends AppCompatActivity {
                                                          response = client.newCall(request).execute();
                                                          responseData = response.body().string();
                                                          if (responseData.equals("oo")) {
-                                                             Log.e("loginoo", responseData);
                                                              SharedPreferences.Editor editor1 = getSharedPreferences("data", MODE_PRIVATE).edit();
                                                              editor1.putString("acc", account);
                                                              editor1.putString("password", password);
@@ -89,7 +88,7 @@ public class LoginActivity extends AppCompatActivity {
                                                              startActivity(intent);
                                                              finish();
                                                          } else {
-                                                             Log.e("loginxx", responseData);
+                                                             Toast.makeText(LoginActivity.this, "密码或用户名错误！", Toast.LENGTH_LONG).show();
                                                          }
 
                                                      } catch (Exception e) {

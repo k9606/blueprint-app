@@ -4,8 +4,6 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import android.app.Activity;
-import android.app.ProgressDialog;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -18,16 +16,14 @@ import android.support.annotation.Nullable;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
-import android.widget.Button;
 import android.widget.ListView;
 import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
 import com.a91zsc.www.myapplication.R;
-import com.a91zsc.www.myapplication.util.XMLTool;
+import com.a91zsc.www.myapplication.util.showTime;
 import com.a91zsc.www.myapplication.util.toolsFileIO;
 import com.a91zsc.www.myapplication.util.utilsTools;
-import com.a91zsc.www.myapplication.view.BluetoothActivity;
 
 public class BluetoothService extends Service {
     private String driverName;
@@ -41,8 +37,9 @@ public class BluetoothService extends Service {
     private toolsFileIO fileIO = new toolsFileIO();
     private static boolean AA = true;
     Intent intent;
+    private boolean BB = false;
     private Boolean aboolean = true;
-    XMLTool xmlTool = new XMLTool();
+    showTime showTime = new showTime();
 
     public void searchDevices() {
             bluetoothAdapter.cancelDiscovery();
@@ -112,6 +109,7 @@ public class BluetoothService extends Service {
                     @Override
                     public void onItemClick(AdapterView<?> arg0, View arg1,
                                             int arg2, long arg3) {
+                        if(utilsTools.isFastClick()){
                         try {
                             Method createBondMethod = BluetoothDevice.class
                                     .getMethod("createBond");
@@ -124,6 +122,7 @@ public class BluetoothService extends Service {
                             Toast.makeText(context, "配对失败", Toast.LENGTH_SHORT)
                                     .show();
                         }
+                    }
                     }
                 });
     }
@@ -152,9 +151,7 @@ public class BluetoothService extends Service {
         intentFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
         //蓝牙状态值发生改变
 //        intentFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
-
         context.registerReceiver(receiver, intentFilter);
-        System.out.println("设置广播信息过滤");
     }
 
 
@@ -188,6 +185,8 @@ public class BluetoothService extends Service {
                 intent.setClassName(context,
                         "com.a91zsc.www.myapplication.view.PrintDataActivity");
                 intent.putExtra("deviceAddress", device.getAddress());
+                BB = true;
+                bluetoothAdapter.cancelDiscovery();
                 context.startActivity(intent);
                 onDestroy();
             }
@@ -200,13 +199,13 @@ public class BluetoothService extends Service {
      */
     public BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
+
         public void onReceive(Context context, Intent intent) {
             String action = intent.getAction();
-
             if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
                 if(aboolean) {
                     Toast toast=Toast.makeText(context, "正在搜索", Toast.LENGTH_LONG);
-                    xmlTool.showMyToast(toast,6000);
+                    showTime.showToast(toast,6000);
                     aboolean = false;
                 }
                 }else if (BluetoothDevice.ACTION_FOUND.equals(action)) {
@@ -222,9 +221,12 @@ public class BluetoothService extends Service {
                     }
                 }
             } else{
+                if(BB){
+                BB = false;
                 bluetoothAdapter.cancelDiscovery();
-                System.out.println("判断搜索断开");
                 aboolean = true;
+                }
+
             }
         }
     };
@@ -238,6 +240,5 @@ public class BluetoothService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        System.out.println("暂停服务+1");
     }
 }

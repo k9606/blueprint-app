@@ -18,8 +18,9 @@
         android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="@string/app_name"
-
         android:supportsRtl="true"
+        android:persistent="true"
+        android:largeHeap="true"
         android:theme="@style/AppTheme">
 
         <activity android:name=".view.LoginActivity">
@@ -37,7 +38,13 @@
 
     <service android:name="com.a91zsc.www.myapplication.service.BluetoothService">
     </service>
-    <service android:name="com.a91zsc.www.myapplication.service.PrintDataService">
+    <service
+        android:name="com.a91zsc.www.myapplication.service.PrintDataService"
+        android:enabled="true"
+        android:process=":background">
+        <intent-filter android:priority="1000" >
+            <action android:name="com.a91zsc.www.myapplication.service.PrintDataService" />
+        </intent-filter>
     </service>
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />

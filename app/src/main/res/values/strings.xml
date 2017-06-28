@@ -14,6 +14,7 @@
     <string name="permission_rationale">"Contacts permissions are needed for providing email
         completions."
     </string>
+
     <string name="login">登 录</string>
     <string name="login_name">登录名:</string>
     <string name="login_password">密 码:</string>

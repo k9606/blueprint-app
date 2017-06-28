@@ -1,6 +1,9 @@
 package com.a91zsc.www.myapplication.view;
 
 import android.app.AlertDialog;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothProfile;
 import android.net.NetworkInfo.State;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -11,7 +14,10 @@ import android.content.res.Configuration;
 import android.media.MediaPlayer;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.KeyEvent;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.TextView;
 
@@ -33,6 +39,7 @@ import com.a91zsc.www.myapplication.R;
 import com.a91zsc.www.myapplication.action.PrintDataAction;
 import com.a91zsc.www.myapplication.service.PrintDataService;
 import com.a91zsc.www.myapplication.util.toolsFileIO;
+import com.a91zsc.www.myapplication.util.utilsTools;
 
 import android.support.v7.app.AppCompatActivity;
 
@@ -51,6 +58,9 @@ import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
+import static android.R.attr.action;
+import static android.R.attr.filter;
+
 public class PrintDataActivity extends AppCompatActivity {
     public static final int takeaway = 0;
     public static final int shopMeal = 1;
@@ -64,9 +74,8 @@ public class PrintDataActivity extends AppCompatActivity {
     private IntentFilter intentFilter;
     private NetworkChangeReceiver networkChangeReceiver;
     private Date curDate;
-    long chenkDelay = 10;
-    long keepAliveDelay = 60000;
-    private long lostSendTime;
+    private PrintDataService PrintDataService;
+    private utilsTools utilsTools = new utilsTools();
 
     /**
      * 复位打印机
@@ -149,7 +158,6 @@ public class PrintDataActivity extends AppCompatActivity {
 
 
 
-
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.printdata_layout);
@@ -209,24 +217,18 @@ public class PrintDataActivity extends AppCompatActivity {
      */
     class NetworkChangeReceiver extends BroadcastReceiver {
 
-
         @Override
         public void onReceive(Context context, Intent intent) {
-            State wifiState = null;
-            State mobileState = null;
             ConnectivityManager connectionManager = (ConnectivityManager)
                     getSystemService(Context.CONNECTIVITY_SERVICE);
-            //判断网络wifi网络状况
-            wifiState = connectionManager.getNetworkInfo(ConnectivityManager.TYPE_WIFI).getState();
-            //判断手机网络状态
-            mobileState = connectionManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE).getState();
             NetworkInfo networkInfo = connectionManager.getActiveNetworkInfo();
-
-            if (wifiState != null && mobileState != null
-                    && State.CONNECTED != wifiState
-                    && State.CONNECTED == mobileState) {
-                if (AA) {
-                    AA = false;
+            if (networkInfo != null && networkInfo.isAvailable()) {
+                if (AA){
+                    SimpleDateFormat formatter = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss ");
+                    curDate = new Date(System.currentTimeMillis());//获取当前时间
+                    String str = formatter.format(curDate);
+                    printDataAction.printDataService.sendInfo("断开服务器：" + str + "\n\n\n\n");
+                    AA =  false;
                     PrintDataActivity.this.recreate();
                 }
 
@@ -339,21 +341,14 @@ public class PrintDataActivity extends AppCompatActivity {
                             String order_type = order.getString("order_type");
                             //String msg_service = order.getString("msg");
                             if (order.has("msg")) {
-                                System.out.println(order_type+"11111111111111111111111");
                                 String msg_service = order.getString("msg");
 
                                 switch (order_type) {
-                                    case "ready":
-                                        ready();
-                                        break;
-                                    case "docking":
-                                        docking();
-                                        break;
                                     case "bind":
                                         bind(msg_service);
                                         break;
                                     case "test":
-                                        test();
+                                        test(msg_service);
                                         break;
                                     case "heartbeat":
                                         heartbeat();
@@ -408,49 +403,14 @@ public class PrintDataActivity extends AppCompatActivity {
                 }
     }
 
-    public void ready() {
-        printDataAction.printDataService.sendInfo("" + "\n");
-    }
-
-    public void docking() {
-        printDataAction.printDataService.sendInfo("" + "\n");
-    }
-
-    public void test() {
-        printDataAction.printDataService.sendInfo("" + "\n\n\n\n");
+    public void test(String m) {
+        printDataAction.printDataService.sendInfo(m + "\n\n\n\n");
     }
 
     public void heartbeat() {
-        this.lostSendTime = System.currentTimeMillis();
-        wsC.sendTextMessage("pong");
-//        try {
 
-//            Socket socket = new Socket("ws://www.91zsc.com:2345", 80);
-//            socket.connect(wsUrl,80);
-//        }catch (Exception i){
-//
-//        }
-//        while (true){
-//            long nowTimeDate=System.currentTimeMillis();
-//            if(nowTimeDate - lostSendTime>keepAliveDelay){
-//                try{
-////                    wsC.sendTextMessage("M2AOO_CMN98_10092_EED33");
-//                    wsC.sendTextMessage("pong");
-//            }catch (Exception i){
-//                    i.printStackTrace();
-//
-//            }
-//            this.lostSendTime = System.currentTimeMillis();
-//            }else{
-//                try {
-//
-//                }catch (Exception e){
-//                    e.printStackTrace();
-//                }
-//
-//            }
-//
-//        }
+//        PrintDataService.registerBoradcastReceiver(context);
+        wsC.sendTextMessage("pong");
 
     }
 
@@ -475,10 +435,8 @@ public class PrintDataActivity extends AppCompatActivity {
                     Response response = client.newCall(request).execute();
                     String responseData = response.body().string();
                     Log.e("PrintDataActivity", responseData);
-                    printDataAction.printDataService.sendInfo(account + " 绑定成功 " + client_id + "\n\n\n\n");
                 } catch (Exception e) {
                     e.printStackTrace();
-                    printDataAction.printDataService.sendInfo(account + " 绑定失败 " + client_id + "\n\n\n\n");
                 }
             }
         }).start();
@@ -713,5 +671,7 @@ public class PrintDataActivity extends AppCompatActivity {
             }
         }
     };
+
+
 }
 

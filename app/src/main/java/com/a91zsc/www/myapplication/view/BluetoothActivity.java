@@ -6,9 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
-import android.content.res.Configuration;
 import android.graphics.Color;
-import android.media.Image;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
@@ -18,12 +16,9 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.a91zsc.www.myapplication.R;
-import com.a91zsc.www.myapplication.action.BluetoothAction;
 import com.a91zsc.www.myapplication.service.BluetoothService;
-import com.a91zsc.www.myapplication.util.XMLTool;
 
 import net.sf.json.JSONObject;
 
@@ -34,7 +29,6 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class BluetoothActivity extends Activity {
-    private BluetoothAction bluetoothAction;
     LinearLayout linearLayout;
     public Context context;
     private BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
@@ -61,15 +55,10 @@ public class BluetoothActivity extends Activity {
         serblue = (Button) findViewById(R.id.searchDevices);
         serblue.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                System.out.println("Hello Wold人！");
                 bluetoothService.searchDevices();
             }
         });
     }
-//
-//    public void onStart() {
-//        super.onStart();
-//    }
 
     public void sendXml() {
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
@@ -77,7 +66,7 @@ public class BluetoothActivity extends Activity {
     }
 
     public static String getVersionName(Context context) {
-        deition.setText("版本" + getPackageInfo(context).versionName);
+        deition.setText("版本:" + getPackageInfo(context).versionName);
 
         return getPackageInfo(context).versionName;
     }
@@ -142,7 +131,6 @@ public class BluetoothActivity extends Activity {
             public void run() {
                 String strUrl = "https://third.91zsc.com/PrintApp/version.json";
                 try {
-                    System.out.println("111111111111111111111111111111111111111111111111111111111111111111");
                     URL url = new URL(strUrl);
                     HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
                     urlConnection.setConnectTimeout(5000);
@@ -209,10 +197,8 @@ public class BluetoothActivity extends Activity {
             uri = Uri.parse(url);
             deition.setText("版本更新"+jsonObject.getString("versionName"));
             deition.setEnabled(true);
-//            deition.setBackgroundResource(R.drawable.button_edition_red);
             linearLayout.setBackgroundColor(Color.parseColor("#00FF00"));
             deition.setTextColor(Color.parseColor("#FFFFFF"));
-//            deition.setTextColor(@c);
         }
     }
 }

@@ -43,17 +43,12 @@ public class PrintDataAction implements OnClickListener {
         }
     }
 
-//    public void setPrintData(EditText printData) {
-//        this.printData = printData;
-//    }
-
     @Override
     public void onClick(View v) {
         if (v.getId() == R.id.send) {
-            this.printDataService.sendInfo("打印机服务正常" + "\n\n\n\n");
-        }else if(v.getId() == R.id.wsStart){
-            //判断答应及和蓝牙连接是否正常
-            Toast.makeText(this.context,"蓝牙尝试连接失败请重连!",Toast.LENGTH_LONG).show();
+            if(printDataService.connect()){
+                this.printDataService.sendInfo("打印机服务正常" + "\n\n\n\n");
+            }
         }
     }
 }
