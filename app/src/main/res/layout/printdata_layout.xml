@@ -35,13 +35,13 @@
         <TextView
             android:id="@+id/connect_state"
             android:layout_width="match_parent"
-            android:layout_height="30dp"
-            android:textSize="15sp"
+            android:layout_height="match_parent"
+            android:textSize="20sp"
             android:background="@drawable/text_view_border"
             android:layout_weight="1"
             android:gravity="center"
             android:enabled="false"
-            android:textColor="@color/blue"
+            android:textColor="@color/white"
             />
 
         <ImageView
@@ -79,7 +79,7 @@
 
             <Button
                 android:id="@+id/send"
-                android:layout_width="match_parent"
+                android:layout_width="fill_parent"
                 android:layout_height="40dp"
                 android:layout_below="@+id/print_data"
                 android:layout_weight="1"
@@ -87,6 +87,7 @@
                 android:background="@drawable/viewtestbutton"
                 android:text="@string/bluetooth_test"
                 android:textColor="@color/white"
+                android:layout_marginTop="50dp"
                 android:textSize="15sp"/>
 
             <ImageView
@@ -103,6 +104,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_weight="1"
+            android:paddingBottom="30dp"
             android:gravity="center">
 
             <ImageView

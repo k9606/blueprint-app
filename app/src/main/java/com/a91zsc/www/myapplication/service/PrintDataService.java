@@ -8,6 +8,7 @@ import android.app.AlertDialog;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
+import android.bluetooth.BluetoothProfile;
 import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -34,6 +35,9 @@ public class PrintDataService extends Service {
     private boolean isConnection = false;
     Intent intent;
 
+    private static final int CONNECTED = 2;
+    private static final int DISCONNECTED = 0;
+    private static final int CONNECTING  = 1;
     @Override
     public IBinder onBind(Intent intent) {
         return null;
@@ -139,6 +143,9 @@ public class PrintDataService extends Service {
                     .show();
 
         }
+        /**
+         * 触发蓝牙判断机制
+         */
     }
 
     /**
@@ -151,6 +158,5 @@ public class PrintDataService extends Service {
     public int onStartCommand(Intent ietent,int flags,int starId){
         return Service.START_STICKY;
     }
-
 
 }

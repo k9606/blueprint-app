@@ -227,7 +227,7 @@ public class PrintDataActivity extends AppCompatActivity {
                     SimpleDateFormat formatter = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss ");
                     curDate = new Date(System.currentTimeMillis());//获取当前时间
                     String str = formatter.format(curDate);
-                    printDataAction.printDataService.sendInfo("断开服务器：" + str + "\n\n\n\n");
+                    printDataAction.printDataService.sendInfo("重连服务器：" + str + "\n\n\n\n");
                     AA =  false;
                     PrintDataActivity.this.recreate();
                 }

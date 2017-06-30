@@ -35,10 +35,10 @@ public class PrintDataAction implements OnClickListener {
         boolean flag = this.printDataService.connect();
         if (flag == false) {
             // 连接失败
-            this.connectState.setText(this.printDataService.getDeviceName()+" 连接失败!");
+            this.connectState.setText(this.printDataService.getDeviceName()+" 连接失败");
         } else {
             // 连接成功
-            this.connectState.setText(this.printDataService.getDeviceName()+" 连接成功!");
+            this.connectState.setText(this.printDataService.getDeviceName()+" 连接成功");
 
         }
     }

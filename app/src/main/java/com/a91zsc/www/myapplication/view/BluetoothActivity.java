@@ -191,7 +191,8 @@ public class BluetoothActivity extends Activity {
     public void deitionconfig(JSONObject jsonObject) {
         if (jsonObject.getString("versionName").equals(getVersionName(context))) {
             deition.setEnabled(false);
-            deition.setTextColor(Color.parseColor("#494949"));
+//            deition.setTextColor(Color.parseColor("#494949"));
+            deition.setTextColor(Color.parseColor("#BBBBBB"));
         } else {
             this.url = jsonObject.getString("downloadUrl");
             uri = Uri.parse(url);

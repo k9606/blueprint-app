@@ -2,14 +2,14 @@
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              android:orientation="vertical"
-              tools:context="view.BluetoothActivity">
+              tools:context="view.BluetoothActivity"
+              android:orientation="vertical">
 
     <LinearLayout
         android:id="@+id/ButtonView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_weight="2"
+        android:layout_weight="1.5"
         android:background="@color/blue"
         android:gravity="center_vertical"
         >
@@ -27,6 +27,8 @@
             android:layout_width="match_parent"
             android:layout_height="40dp"
             android:layout_weight="1"
+            android:layout_marginTop="5dp"
+            android:textSize="17sp"
             android:background="@drawable/buttonstyle_b"
             android:text="搜索设备"/>
 
@@ -74,8 +76,10 @@
                     android:layout_width="match_parent"
                     android:layout_height="30dp"
                     android:layout_weight="1"
+                    android:layout_marginTop="15dp"
                     android:background="@drawable/buttonstyle_birds"
                     android:enabled="false"
+                    android:textSize="15sp"
                     android:text="未配对设备"
                     android:textColor="@color/white"/>
 
@@ -142,6 +146,7 @@
                     android:background="@drawable/buttonstyle_birds"
                     android:text="已配对设备"
                     android:enabled="false"
+                    android:textSize="15sp"
                     android:textColor="@color/white"/>
 
                 <ImageView
@@ -173,6 +178,7 @@
             </LinearLayout>
         </LinearLayout>
     </LinearLayout>
+
     <LinearLayout
         android:id="@+id/deitionlinear"
         android:layout_width="match_parent"
@@ -185,8 +191,8 @@
             android:id="@+id/deition"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:textSize="14sp"
-            android:textColor="@color/gray"
+            android:textSize="12sp"
+            android:textColor="@color/grayremove"
             android:background="@drawable/buttoe_edition"/>
     </LinearLayout>
 
