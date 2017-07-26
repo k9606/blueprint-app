@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-          package="com.a91zsc.www.myapplication">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"  package="com.a91zsc.www.myapplication">
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>
@@ -22,35 +21,32 @@
         android:persistent="true"
         android:largeHeap="true"
         android:theme="@style/AppTheme">
-
         <activity android:name=".view.LoginActivity">
-
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
-
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-
         <activity android:name="com.a91zsc.www.myapplication.view.BluetoothActivity"></activity>
         <activity android:name=".view.PrintDataActivity"></activity>
-    </application>
 
-    <service android:name="com.a91zsc.www.myapplication.service.BluetoothService">
-    </service>
+
+    <service android:name="com.a91zsc.www.myapplication.service.BluetoothService"
+        />
     <service
         android:name="com.a91zsc.www.myapplication.service.PrintDataService"
-        android:enabled="true"
-        android:process=":background">
-        <intent-filter android:priority="1000" >
-            <action android:name="com.a91zsc.www.myapplication.service.PrintDataService" />
-        </intent-filter>
+        android:priority="999"
+        android:process=":background"
+        android:exported="true">
     </service>
+    </application>
     <uses-permission android:name="android.permission.CHANGE_NETWORK_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!--<uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />-->
+    <!--<uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />-->
 
 </manifest>

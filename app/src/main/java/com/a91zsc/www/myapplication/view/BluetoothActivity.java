@@ -1,8 +1,10 @@
 package com.a91zsc.www.myapplication.view;
 
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -11,14 +13,22 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.text.Layout;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.Toast;
 
 import com.a91zsc.www.myapplication.R;
 import com.a91zsc.www.myapplication.service.BluetoothService;
+import com.a91zsc.www.myapplication.service.PrintDataService;
+import com.a91zsc.www.myapplication.util.showTime;
+import com.a91zsc.www.myapplication.util.toolsFileIO;
 
 import net.sf.json.JSONObject;
 
@@ -28,28 +38,40 @@ import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 
+import okhttp3.OkHttpClient;
+
 public class BluetoothActivity extends Activity {
-    LinearLayout linearLayout;
     public Context context;
     private BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     private String url = "";
     Uri uri = null;
+    toolsFileIO TFO = new toolsFileIO();
     public static Button serblue;
     public static Button deition;
+    private static final String STRUL = "https://www.91zsc.com/PrintApp/version.json";
     private BluetoothService bluetoothService ;
+    private LinearLayout barlayout;
+    private Toast toast = null;
+    private showTime showTime = new showTime();
+
+    /**
+     * 初始化
+     * @param savedInstanceState
+     */
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.context = this;
         openBlue();
+        isuserpassworld();
+        startService(new Intent(context, BluetoothService.class));
         setContentView(R.layout.bluetooth_layout);
         this.initListener();
-        deitionCode();
 
-        this.linearLayout = (LinearLayout) findViewById(R.id.deitionlinear);
+        deitionCode();
         deition = (Button) findViewById(R.id.deition);
         deition.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
-                sendXml();
+                VersioUpdate();
             }
         });
         serblue = (Button) findViewById(R.id.searchDevices);
@@ -58,27 +80,49 @@ public class BluetoothActivity extends Activity {
                 bluetoothService.searchDevices();
             }
         });
+//        mBluetoothAdapter.startDiscovery();
+        openBluetootjScovery();
+
     }
 
-    public void sendXml() {
+    /**
+     * 打开蓝牙搜索
+     */
+    public void openBluetootjScovery() {
+        mBluetoothAdapter.startDiscovery();
+        toast  = Toast.makeText(context, "正在搜索...", Toast.LENGTH_LONG);
+        showTime.showToast(toast,13000);
+        Toast.makeText(context, "搜索完成", Toast.LENGTH_SHORT).show();
+    }
+    /**
+     * 用户名密码检测
+     */
+    public void isuserpassworld(){
+        TFO.ishttp(context);
+    }
+    /**
+     * 版本更新
+     */
+    public void VersioUpdate() {
         Intent intent = new Intent(Intent.ACTION_VIEW, uri);
         startActivity(intent);
     }
 
+    /**
+     * 获取当前版本信息
+     * @param context
+     * @return
+     */
     public static String getVersionName(Context context) {
-        deition.setText("版本:" + getPackageInfo(context).versionName);
-
+        deition.setText("版本 " + getPackageInfo(context).versionName);
         return getPackageInfo(context).versionName;
     }
-
+    /**
+     * 打开蓝牙设备
+     */
     public void openBlue() {
-
             mBluetoothAdapter.enable();
     }
-
-
-
-
     /**
      * 初始化点击事件
      */
@@ -88,8 +132,12 @@ public class BluetoothActivity extends Activity {
         ListView bondDevices = (ListView) this.findViewById(R.id.bondDevices);
         this.bluetoothService = new BluetoothService(this.context,unbondDevices,bondDevices);
     }
-
-    //屏蔽返回键的代码:
+    /**
+     * 屏蔽返回键
+     * @param keyCode
+     * @param event
+     * @return
+     */
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         switch (keyCode) {
             case KeyEvent.KEYCODE_BACK:
@@ -97,7 +145,6 @@ public class BluetoothActivity extends Activity {
         }
         return super.onKeyDown(keyCode, event);
     }
-
     /**
      * 获取当前版本号
      *
@@ -106,7 +153,6 @@ public class BluetoothActivity extends Activity {
      */
     private static PackageInfo getPackageInfo(Context context) {
         PackageInfo pi = null;
-
         try {
             PackageManager pm = context.getPackageManager();
             pi = pm.getPackageInfo(context.getPackageName(),
@@ -119,8 +165,6 @@ public class BluetoothActivity extends Activity {
 
         return pi;
     }
-
-
     /**
      * 版本更新
      *
@@ -129,13 +173,10 @@ public class BluetoothActivity extends Activity {
     public String deitionCode() {
         new Thread() {
             public void run() {
-                String strUrl = "https://third.91zsc.com/PrintApp/version.json";
                 try {
-                    URL url = new URL(strUrl);
+                    URL url = new URL(STRUL);
                     HttpURLConnection urlConnection = (HttpURLConnection) url.openConnection();
-                    urlConnection.setConnectTimeout(5000);
                     //设置对象链接超时
-                    urlConnection.setReadTimeout(5000);
                     //获取对象获取超时
                     urlConnection.setRequestMethod("GET");
                     //设置本次请求方式
@@ -165,8 +206,6 @@ public class BluetoothActivity extends Activity {
 
                     } else {
                         deition.setEnabled(false);
-
-
                     }
 
                 } catch (Exception e) {
@@ -184,22 +223,29 @@ public class BluetoothActivity extends Activity {
             String getResult1 = (String) msg.obj;
             JSONObject json_test = JSONObject.fromObject(getResult1);
             deitionconfig(json_test);
-
         }
     };
-
     public void deitionconfig(JSONObject jsonObject) {
         if (jsonObject.getString("versionName").equals(getVersionName(context))) {
             deition.setEnabled(false);
-//            deition.setTextColor(Color.parseColor("#494949"));
             deition.setTextColor(Color.parseColor("#BBBBBB"));
         } else {
             this.url = jsonObject.getString("downloadUrl");
             uri = Uri.parse(url);
-            deition.setText("版本更新"+jsonObject.getString("versionName"));
+
+            new AlertDialog.Builder(this)
+                    .setTitle("提示")
+                    .setMessage(jsonObject.getString("msg"))
+                    .setPositiveButton("下载更新",new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            VersioUpdate();
+                        }
+                    })
+                    .show();
+            deition.setText("版本更新");
+            deition.setTextColor(Color.parseColor("#FF0000"));
             deition.setEnabled(true);
-            linearLayout.setBackgroundColor(Color.parseColor("#00FF00"));
-            deition.setTextColor(Color.parseColor("#FFFFFF"));
         }
     }
 }

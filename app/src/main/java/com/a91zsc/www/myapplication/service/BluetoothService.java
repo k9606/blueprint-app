@@ -13,6 +13,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.AdapterView.OnItemClickListener;
@@ -25,8 +26,10 @@ import com.a91zsc.www.myapplication.util.showTime;
 import com.a91zsc.www.myapplication.util.toolsFileIO;
 import com.a91zsc.www.myapplication.util.utilsTools;
 
+import static android.os.SystemClock.sleep;
+
 public class BluetoothService extends Service {
-    private String driverName;
+    private static String driverName;
     private Context context;
     private BluetoothAdapter bluetoothAdapter = BluetoothAdapter
             .getDefaultAdapter();                               //本地蓝牙适配器
@@ -35,15 +38,22 @@ public class BluetoothService extends Service {
     private ListView unbondDevicesListView = null;              //加载未绑定buuletooth 视图
     private ListView bondDevicesListView = null;                //加载绑定buletooth视图
     private toolsFileIO fileIO = new toolsFileIO();
-    private static boolean AA = true;
+    private BluetoothDevice device = null;
+
     Intent intent;
     private boolean BB = false;
-    private Boolean aboolean = true;
+    private static Boolean aboolean = true;
     showTime showTime = new showTime();
-
+    private Toast toast =  null;
+    public static final String ISCODE = "1536";
+    public static final String ISPHONE = "512";
+    public static final int LENGTH_LONGF = 12000;
+    private static final String ACTIVITYCONTENT =  "com.a91zsc.www.myapplication.view.PrintDataActivity";
+    public BluetoothService(){
+    }
     public void searchDevices() {
+                this.BB = true;
             bluetoothAdapter.cancelDiscovery();
-        System.out.println("991234");
         this.bluetoothAdapter.startDiscovery();
     }
     /**
@@ -69,20 +79,17 @@ public class BluetoothService extends Service {
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
                 if(utilsTools.isFastClick()) {
-                    BluetoothDevice device = bondDevices.get(arg2);
+                    bluetoothAdapter.cancelDiscovery();
+                    device = bondDevices.get(arg2);
                     Intent intent = new Intent();
-                    intent.setClassName(context,
-                            "com.a91zsc.www.myapplication.view.PrintDataActivity");
+                    intent.setClassName(context,ACTIVITYCONTENT);
                     intent.putExtra("deviceAddress", device.getAddress());
                     context.startActivity(intent);
-                    bluetoothAdapter.cancelDiscovery();
                     onDestroy();
                 }
             }
         });
-
     }
-
 
     /**
      * 添加未绑定蓝牙设备到ListView
@@ -131,16 +138,19 @@ public class BluetoothService extends Service {
     public BluetoothService(Context context, ListView unbondDevicesListView,
                             ListView bondDevicesListView) {
         this.context = context;
+        this.initIntentFilter();
+        this.driverName = fileIO.getBlueTooth(context);
         this.unbondDevicesListView = unbondDevicesListView;
         this.bondDevicesListView = bondDevicesListView;
         this.unbondDevices = new ArrayList<BluetoothDevice>();
         this.bondDevices = new ArrayList<BluetoothDevice>();
-        this.searchDevices();
-        this.initIntentFilter();
+//        this.searchDevices();
 
     }
 
+
     private void initIntentFilter() {
+        Log.e("initIntentFilter","initIntentFilter");
         // 设置广播信息过滤
         IntentFilter intentFilter = new IntentFilter();
         //说明：蓝牙扫描时，扫描到任一远程蓝牙设备时，会发送此广播。
@@ -172,24 +182,19 @@ public class BluetoothService extends Service {
      * @param device
      */
     public void addBandDevices(BluetoothDevice device) {
-        if (AA) {
-            this.driverName = fileIO.getBlueTooth(context);
-        }
         if (!this.bondDevices.contains(device)) {
-            this.bondDevices.add(device);
-        }
-        if (driverName != "") {
             if (device.toString().equals(driverName)) {
                 bluetoothAdapter.cancelDiscovery();
                 intent = new Intent();
-                intent.setClassName(context,
-                        "com.a91zsc.www.myapplication.view.PrintDataActivity");
+                intent.setClassName(context,ACTIVITYCONTENT);
                 intent.putExtra("deviceAddress", device.getAddress());
                 BB = true;
-                bluetoothAdapter.cancelDiscovery();
                 context.startActivity(intent);
-                onDestroy();
             }
+            this.bondDevices.add(device);
+        }
+        if (driverName != "") {
+
         }
     }
 
@@ -204,14 +209,17 @@ public class BluetoothService extends Service {
             String action = intent.getAction();
             if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
                 if(aboolean) {
-                    Toast toast=Toast.makeText(context, "正在搜索", Toast.LENGTH_LONG);
-                    showTime.showToast(toast,6000);
                     aboolean = false;
+                    toast  = Toast.makeText(context, "正在搜索...", Toast.LENGTH_LONG);
+                    showTime.showToast(toast,13000);
+                    Toast.makeText(context, "搜索完成", Toast.LENGTH_SHORT).show();
                 }
                 }else if (BluetoothDevice.ACTION_FOUND.equals(action)) {
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
                 int deviceType = device.getBluetoothClass().getMajorDeviceClass();
-                if(Integer.toString(deviceType).equals("1536")){
+                String dviceIS = Integer.toString(deviceType);
+                Log.e("NAME:"+device.getName(),""+dviceIS);
+                if(!dviceIS.equals(ISPHONE)||dviceIS.equals(ISCODE)){
                     if(device.getBondState() == BluetoothDevice.BOND_BONDED){
                         addBandDevices(device);
                         addBondDevicesToListView();
@@ -220,15 +228,16 @@ public class BluetoothService extends Service {
                         addUnbondDevicesToListView();
                     }
                 }
-            } else{
+            } else {
                 if(BB){
                 BB = false;
-                bluetoothAdapter.cancelDiscovery();
                 aboolean = true;
+                bluetoothAdapter.cancelDiscovery();
                 }
-
             }
+//            context.unregisterReceiver(this);
         }
+
     };
 
     @Nullable

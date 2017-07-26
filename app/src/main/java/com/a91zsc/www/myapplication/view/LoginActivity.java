@@ -35,15 +35,17 @@ public class LoginActivity extends AppCompatActivity {
     private Button login;
 
     private OkHttpClient client;
-
+    public Context context;
     private Response response = null;
     private String responseData = null;
+    private static final String CODELOGIN = "oo";
+    private static final String USER = "user";
     Intent intent = new Intent();
     private utilsTools utilsTools = new utilsTools();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        SharedPreferences pref1 = getSharedPreferences("data", MODE_PRIVATE);
+        SharedPreferences pref1 = getSharedPreferences(USER, MODE_PRIVATE);
         String account = pref1.getString("acc", "");
 
         if (!(account == null || account.length() <= 0)) {
@@ -79,16 +81,17 @@ public class LoginActivity extends AppCompatActivity {
                                                                  .build();
                                                          response = client.newCall(request).execute();
                                                          responseData = response.body().string();
-                                                         if (responseData.equals("oo")) {
-                                                             SharedPreferences.Editor editor1 = getSharedPreferences("data", MODE_PRIVATE).edit();
+                                                         Log.e("responseData",responseData);
+                                                         if (responseData.equals(CODELOGIN)) {
+                                                             SharedPreferences.Editor editor1 = getSharedPreferences(USER, MODE_PRIVATE).edit();
                                                              editor1.putString("acc", account);
                                                              editor1.putString("password", password);
                                                              editor1.apply();
                                                              Intent intent = new Intent(LoginActivity.this, BluetoothActivity.class);
                                                              startActivity(intent);
                                                              finish();
-                                                         } else {
-                                                             Toast.makeText(LoginActivity.this, "密码或用户名错误！", Toast.LENGTH_LONG).show();
+                                                         } else{
+                                                             startFunction();
                                                          }
 
                                                      } catch (Exception e) {
@@ -103,5 +106,14 @@ public class LoginActivity extends AppCompatActivity {
                                  }
         );
     }
+    public void startFunction() {
+        runOnUiThread(new Runnable() {
+            public void run() {
+                Toast.makeText(LoginActivity.this, "密码或用户名错误！", Toast.LENGTH_LONG).show();
+
+            }
+        });
+    }
+
 
 }

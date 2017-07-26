@@ -24,4 +24,9 @@
     <string name="texttitle">Copyright 2015-2017 @ZhunShiChi. All Rights Reserved.</string>
     <string name="service_test">服务器测试</string>
     <string name="bluetooth_test">打印机测试</string>
+    <string name="setdata_data">小票设置</string>
+    <string name="setdata_number">设置小票打印数量</string>
+    <string name="setdata_input">输入1-10:</string>
+    <string name="setdata_save">保存</string>
+    <string name="setdata_cancel">退出</string>
 </resources>
