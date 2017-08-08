@@ -20,6 +20,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.view.WindowManager;
@@ -29,6 +30,8 @@ import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
+import butterknife.Bind;
+import butterknife.ButterKnife;
 import de.tavendo.autobahn.WebSocketConnection;
 import de.tavendo.autobahn.WebSocketException;
 import de.tavendo.autobahn.WebSocketHandler;
@@ -46,6 +49,7 @@ import android.widget.Toast;
 import com.a91zsc.www.myapplication.R;
 import com.a91zsc.www.myapplication.action.PrintDataAction;
 import com.a91zsc.www.myapplication.service.PrintDataService;
+import com.a91zsc.www.myapplication.util.printUtils;
 import com.a91zsc.www.myapplication.util.showTime;
 import com.a91zsc.www.myapplication.util.toolsFileIO;
 import com.a91zsc.www.myapplication.util.utilsTools;
@@ -70,106 +74,27 @@ import android.net.NetworkInfo;
 import static android.R.attr.action;
 import static android.R.attr.filter;
 
-public class PrintDataActivity extends AppCompatActivity {
+public class PrintDataActivity extends AppCompatActivity implements View.OnClickListener {
 
-    public static final int takeaway = 0;
-    public static final int shopMeal = 1;
-    public static final int booked = 2;
-    public static final int aitershopMeal = 3;
+
     public boolean isNetWork = false;
     public Context context;
     public TextView connectState = null;
-    MediaPlayer mediaPlayer;
     PrintDataAction printDataAction;
+    PrintDataService printDataService;
     private toolsFileIO fileIO = new toolsFileIO();
-    private IntentFilter intentFilter;
-    private NetworkChangeReceiver networkChangeReceiver;
-    private PrintDataService PrintDataService;
-    private utilsTools utilsTools = new utilsTools();
-    private showTime util = new showTime();
-    private static final int LEFT_TEXT_MAX_LENGTH = 99;
-    private static  final String BIND = "https://www.91zsc.com/Home/Print/bind";
-    public static final String URL = "ws://www.91zsc.com:2345";
     private PopupWindow mPopWindow;
-    private TextView Text = null;
-    private Button cancel = null;
-    private EditText editText = null;
-    private Button save = null;
     public static int shulian = 1;
-    public static  int data = 0;
-    private Button send= null;
-    private Button command = null;
-    private Button saveSet= null;
-    private Boolean isNet = false;
+    private Button saveSet;
+    private Button send;
+    private Button command;
 
-    /**
-     * 复位打印机
-     */
-    public static final byte[] RESET = {0x1b, 0x40};
+//    @Bind(R.id.start) Button start;
+//    @Bind(R.id.wsStart) Button stop;
+//    @Bind(R.id.SetData) Button bind;
+//    @Bind(R.id.unbind) Button unbind;
+//    private NetworkChangeReceiver networkChangeReceiver =new NetworkChangeReceiver();;
 
-    /**
-     * 左对齐
-     */
-    public static final byte[] ALIGN_LEFT = {0x1b, 0x61, 0x00};
-
-    /**
-     * 中间对齐
-     */
-    public static final byte[] ALIGN_CENTER = {0x1b, 0x61, 0x01};
-
-    /**
-     * 右对齐
-     */
-    public static final byte[] ALIGN_RIGHT = {0x1b, 0x61, 0x02};
-
-    /**
-     * 选择加粗模式
-     */
-    public static final byte[] BOLD = {0x1b, 0x45, 0x01};
-
-    /**
-     * 取消加粗模式
-     */
-    public static final byte[] BOLD_CANCEL = {0x1b, 0x45, 0x00};
-
-    /**
-     * 宽高加倍
-     */
-    public static final byte[] DOUBLE_HEIGHT_WIDTH = {0x1d, 0x21, 0x11};
-
-    /**
-     * 宽加倍
-     */
-    public static final byte[] DOUBLE_WIDTH = {0x1d, 0x21, 0x10};
-
-    /**
-     * 高加倍
-     */
-    public static final byte[] DOUBLE_HEIGHT = {0x1d, 0x21, 0x01};
-
-    /**
-     * 字体不放大
-     */
-    public static final byte[] NORMAL = {0x1d, 0x21, 0x00};
-
-    /**
-     * 设置默认行间距
-     */
-    public static final byte[] LINE_SPACING_DEFAULT = {0x1b, 0x32};
-    /**
-     * 打印纸一行最大的字节
-     */
-    private static final int LINE_BYTE_SIZE = 32;
-
-    /**
-     * 打印三列时，中间一列的中心线距离打印纸左侧的距离
-     */
-    private static final int LEFT_LENGTH = 16;
-
-    /**
-     * 打印三列时，中间一列的中心线距离打印纸右侧的距离
-     */
-    private static final int RIGHT_LENGTH = 16;
 
     /**
      * 打印三列时，第一列汉字最多显示几个文字
@@ -183,36 +108,43 @@ public class PrintDataActivity extends AppCompatActivity {
         this.context = this;
         startService(new Intent(context, PrintDataService.class));
         this.connectState = (TextView) this.findViewById(R.id.connect_state);
-        intentFilter = new IntentFilter();
-        intentFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
-        networkChangeReceiver = new NetworkChangeReceiver();
-        registerReceiver(networkChangeReceiver, intentFilter);
-
-        this.send = (Button) this.findViewById(R.id.send);
-        this.command = (Button) this.findViewById(R.id.wsStart);
-        printDataAction = new PrintDataAction(this.context,
-                this.getDeviceAddress(), connectState,send,command);
-        send.setOnClickListener(printDataAction);
-        command.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                wsC.sendTextMessage("服务器正常");
-            }
-        });
-          this.saveSet = (Button)findViewById(R.id.SetData);
-            saveSet.setOnClickListener(new View.OnClickListener() {
-            public void onClick(View v) {
-                showPopupWindow();
-            }
-        });
+        send = (Button) this.findViewById(R.id.send);
+        command = (Button) this.findViewById(R.id.wsStart);
+        saveSet = (Button) findViewById(R.id.SetData);
+        printDataAction = new PrintDataAction(this.context, this.getDeviceAddress(), connectState, send, command);
+//        IntentFilter intentFilter = new IntentFilter();
+//        intentFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
+//        registerReceiver(networkChangeReceiver, intentFilter);
+        send.setOnClickListener(this);
+        command.setOnClickListener(this);
+        saveSet.setOnClickListener(this);
+        printDataService = printDataAction.getService();
         getData(context);
-        dataProcessing();
-//        printDataAction.printDataService.getAPNType(context,true);
-//        PrintDataService.startService(intent);
+        ButterKnife.bind(this);
     }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.wsStart:
+                printDataService.sendTextMassage();
+                break;
+            case R.id.SetData:
+                showPopupWindow();
+                break;
+            case R.id.send:
+                printDataService.sendInfo();
+                break;
+            default:
+                break;
+        }
+
+    }
+
     public void getData(Context context) {
-        if (fileIO.getSetData(context)>1) {
-            this.shulian =  fileIO.getSetData(context);
-            saveSet.setText("小票设置  "+shulian);
+        if (fileIO.getSetData(context) > 1) {
+            this.shulian = fileIO.getSetData(context);
+            saveSet.setText("小票设置  " + shulian);
         }
     }
 
@@ -223,7 +155,7 @@ public class PrintDataActivity extends AppCompatActivity {
         mPopWindow.setFocusable(true);
         mPopWindow.setWidth(ViewGroup.LayoutParams.MATCH_PARENT);
         mPopWindow.setHeight(ViewGroup.LayoutParams.MATCH_PARENT);
-        this.editText = (EditText) contentView.findViewById(R.id.inttext);
+        final EditText editText = (EditText) contentView.findViewById(R.id.inttext);
         editText.setCursorVisible(false);
         editText.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -231,38 +163,33 @@ public class PrintDataActivity extends AppCompatActivity {
                 editText.setCursorVisible(true);
             }
         });
-        this.cancel = (Button) contentView.findViewById(R.id.cancel);
+        Button cancel = (Button) contentView.findViewById(R.id.cancel);
         cancel.setOnClickListener(new Button.OnClickListener() {
             public void onClick(View v) {
                 mPopWindow.dismiss();
             }
         });
-        this.save = (Button) contentView.findViewById(R.id.saveSet);
+        Button save = (Button) contentView.findViewById(R.id.saveSet);
         save.setOnClickListener(new View.OnClickListener() {
             public void onClick(View v) {
                 try {
-                    data = Integer.parseInt(editText.getText().toString());
-                    if (data>10 || data==0){
-                            Toast.makeText(context,"保存失败！数字大小在1-10范围内。",Toast.LENGTH_SHORT).show();
-                    }else{
+                    int data = Integer.parseInt(editText.getText().toString());
+                    if (data > 10 || data == 0) {
+                        Toast.makeText(context, "保存失败！数字大小在1-10范围内。", Toast.LENGTH_SHORT).show();
+                    } else {
                         shulian = data;
-                        fileIO.putSetData(context,data);
-                        if(!(data == 1)){
-                            saveSet.setText("小票设置  "+shulian);
-                        }else{
+                        fileIO.putSetData(context, data);
+                        if (!(data == 1)) {
+                            saveSet.setText("小票设置  " + shulian);
+                        } else {
                             saveSet.setText("小票设置");
-
                         }
-
                         mPopWindow.dismiss();
-                        Toast.makeText(context,"保存成功",Toast.LENGTH_SHORT).show();
+                        Toast.makeText(context, "保存成功", Toast.LENGTH_SHORT).show();
                     }
-                }catch (NumberFormatException e){
+                } catch (NumberFormatException e) {
                     mPopWindow.dismiss();
                 }
-
-
-
             }
         });
         mPopWindow.showAsDropDown(connectState);
@@ -277,7 +204,8 @@ public class PrintDataActivity extends AppCompatActivity {
     public String getDeviceAddress() {
         Intent intent = this.getIntent();
         if (intent != null) {
-            return intent.getStringExtra("deviceAddress");
+            String Bluetooth = intent.getStringExtra("deviceAddress");
+            return Bluetooth;
         } else {
             return null;
         }
@@ -289,11 +217,7 @@ public class PrintDataActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        PrintDataService.disconnect();
-        unregisterReceiver(networkChangeReceiver);
-        if (wsC.isConnected()) {
-            wsC.disconnect();
-        }
+
     }
 
 
@@ -307,512 +231,19 @@ public class PrintDataActivity extends AppCompatActivity {
                     getSystemService(Context.CONNECTIVITY_SERVICE);
             NetworkInfo networkInfo = connectionManager.getActiveNetworkInfo();
             if (networkInfo != null && networkInfo.isAvailable()) {
-                if (isNetWork){
-                    isNetWork =  false;
+                if (isNetWork) {
+                    isNetWork = false;
                     PrintDataActivity.this.recreate();
                 }
             }
         }
     }
-//    public void startFunction() {
-//        runOnUiThread(new Runnable() {
-//            public void run() {
-//                PrintDataActivity.this.recreate();
-//            }
-//        });
-//    }
 
-//########################################格式相关########################################//
-
-    private static int getBytesLength(String msg) {
-        return msg.getBytes(Charset.forName("GB2312")).length;
-    }
-
-    public static String printTwoData(String leftText, String rightText) {
-        StringBuilder sb = new StringBuilder();
-        int leftTextLength = getBytesLength(leftText);
-        int rightTextLength = getBytesLength(rightText);
-        sb.append(leftText);
-        // 计算两侧文字中间的空格
-        int marginBetweenMiddleAndRight = LINE_BYTE_SIZE - leftTextLength - rightTextLength;
-        for (int i = 0; i < marginBetweenMiddleAndRight; i++) {
-            sb.append(" ");
-        }
-        sb.append(rightText);
-        return sb.toString();
-    }
-
-    public static String printThreeData(String leftText, String middleText, String rightText) {
-        StringBuilder sb = new StringBuilder();
-        // 左边最多显示 LEFT_TEXT_MAX_LENGTH 个汉字 + 两个点
-        if (leftText.length() > LEFT_TEXT_MAX_LENGTH) {
-            leftText = leftText.substring(0, LEFT_TEXT_MAX_LENGTH) + "..";
-        }
-        int leftTextLength = getBytesLength(leftText);
-        int middleTextLength = getBytesLength(middleText);
-        int rightTextLength = getBytesLength(rightText);
-
-        sb.append(leftText);
-        // 计算左侧文字和中间文字的空格长度
-        //int marginBetweenLeftAndMiddle = LEFT_LENGTH - leftTextLength - middleTextLength / 2;
-        if (leftTextLength > 20) {
-            sb.append("\n");
-        } else {
-            for (int i = 0; i < 20 - leftTextLength; i++) {
-                sb.append(" ");
-            }
-        }
-        sb.append(middleText);
-
-        // 计算右侧文字和中间文字的空格长度
-        //int marginBetweenMiddleAndRight = RIGHT_LENGTH - middleTextLength / 2 - rightTextLength;
-
-        for (int i = 0; i < 10 - rightTextLength; i++) {
-            sb.append(" ");
-        }
-
-        // 打印的时候发现，最右边的文字总是偏右一个字符，所以需要删除一个空格
-        sb.delete(sb.length() - 1, sb.length()).append(rightText);
-        return sb.toString();
-    }
-
-//########################################socket相关########################################//
-
-
-    public static final WebSocketConnection wsC = new WebSocketConnection();
-
-    Handler handler = new Handler() {
-        @Override
-        public void handleMessage(Message msg) {
-            super.handleMessage(msg);
-            JSONObject jsonObject = JSONObject.fromObject(msg.obj + "");
-            JSONObject order = jsonObject.getJSONObject("order");
-            try {
-                printDataAction.printDataService.showConnect();
-            } catch (Exception e) {
-                connectState.setText("蓝牙连接失败！请查看蓝牙设备！");
-            }
-            switch (msg.what) {
-                case takeaway:
-                    for(int i = 0;i<shulian;i++){
-                        waimai(jsonObject, order);
-                        util.Delayed(2000);
-                    }
-                    break;
-                case shopMeal:
-                    for(int i = 0;i<shulian;i++) {
-                        diannei(jsonObject, order);
-                        util.Delayed(2000);
-                    }
-                    break;
-                case booked:
-                    Log.e("test","booked");
-                    for(int i = 0;i<shulian;i++) {
-                        yuding(jsonObject, order);
-                        util.Delayed(2000);
-                    }
-                    break;
-                case aitershopMeal:
-                    Log.e("test","aitershopMeal");
-                    for(int i = 0;i<shulian;i++) {
-                        waiterdiannei(jsonObject,order);
-                        util.Delayed(2000);
-                    }
-                    break;
-            }
-        }
-    };
 
     private void toastLog(String s) {
         Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
     }
 
-    public void dataProcessing() {
-                try {
-                    wsC.connect(URL, new WebSocketHandler() {
-                        @Override
-                        public void onOpen() {
-                        }
-
-                        //根据数据进行判断数据发送格式
-                        @Override
-                        public void onTextMessage(String payload) {
-
-                            JSONObject jsonObject = JSONObject.fromObject(payload);
-                            Log.e("JSONOBJECT",jsonObject+"");
-                            JSONObject order = jsonObject.getJSONObject("order");
-                            String order_type = order.getString("order_type");
-                            //String msg_service = order.getString("msg");
-                            if (order.has("msg")) {
-                                String msg_service = order.getString("msg");
-                                switch (order_type) {
-                                    case "bind":
-                                        bind(msg_service);
-                                        break;
-                                    case "test":
-                                        for (int i = 0;i<shulian;i++){
-                                            test(msg_service);
-                                            util.Delayed(1000);
-                                        }
-                                        break;
-                                    case "heartbeat":
-                                        heartbeat();
-                                        break;
-                                    default:
-                                        System.out.println("default");
-                                        break;
-                                }
-                            } else {
-                                switch (order_type) {
-                                    case "外卖":
-                                        Message msg = new Message();
-                                        msg.what = takeaway;
-                                        msg.obj = payload;
-                                        handler.sendMessage(msg);
-                                        break;
-                                    case "店内点餐":
-                                        Message msg1 = new Message();
-                                        msg1.what = shopMeal;
-                                        msg1.obj = payload;
-                                        handler.sendMessage(msg1);
-                                        break;
-                                    case "店内点餐(服务员)":
-                                        Message msgService = new Message();
-                                        msgService.what = aitershopMeal;
-                                        msgService.obj = payload;
-                                        handler.sendMessage(msgService);
-                                        break;
-                                    case "预订到店":
-                                        Message msg2 = new Message();
-                                        msg2.what = booked;
-                                        msg2.obj = payload;
-                                        handler.sendMessage(msg2);
-                                        break;
-                                    default:
-                                        System.out.println("default");
-                                        break;
-                                }
-                            }
-                        }
-                        @Override
-                        public void onClose(int code, String reason) {
-//                            SimpleDateFormat formatter = new SimpleDateFormat("yyyy年MM月dd日 HH:mm:ss ");
-//                            curDate = new Date(System.currentTimeMillis());//获取当前时间
-//                            String str = formatter.format(curDate);
-//                            printDataAction.printDataService.sendInfo("断开服务器：" + str + "\n\n\n\n");\
-                            isNetWork = true;
-                            connectState.setText("服务器连接失败！请检测本地网络!");
-                            connectState.setTextColor(Color.parseColor("#FF4500"));
-                            send.setEnabled(false);
-                            command.setEnabled(false);
-                            mediaPlayer = MediaPlayer.create(PrintDataActivity.this, R.raw.audio_end);
-                            mediaPlayer.start();
-                            for (int i = 1;i<8;i++){
-                                if(printDataAction.printDataService.getAPNType(context,isNetWork)){
-                                    PrintDataActivity.this.recreate();
-                                    break;
-                                }
-                                util.Delayed(3000);
-                            }
-                            connectState.setText("服务器连接失败！请检测本地网络!");
-                        }
-                    });
-                } catch (WebSocketException e) {
-                    e.printStackTrace();
-                }
-    }
-
-
-    public void test(String m) {
-
-        printDataAction.printDataService.sendInfo(m + "\n\n\n\n");
-    }
-
-    public void heartbeat() {
-//        PrintDataService.registerBoradcastReceiver(context);
-        wsC.sendTextMessage("pong");
-
-    }
-
-    public void bind(String msg) {
-        SharedPreferences pref = getSharedPreferences("user", MODE_PRIVATE);
-        final String account = pref.getString("acc", "");
-        Log.e("USERNAME",""+account);
-        final String client_id = msg;
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    OkHttpClient client = new OkHttpClient();
-                    RequestBody requestBody = new FormBody.Builder()
-                            .add("account", account)
-                            .add("client_id", client_id)
-                            .build();
-                    Request request = new Request.Builder()
-                            .url(BIND)
-                            .post(requestBody)
-                            .build();
-                    Response response = client.newCall(request).execute();
-                    String responseData = response.body().string();
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
-    }
-
-    //解析order数据进行 发送
-
-    public void diannei(JSONObject jsonObject, JSONObject order) {
-
-        JSONObject shop = jsonObject.getJSONObject("shop");
-        String shop_name = shop.getString("name");
-        String shoporder_sales = order.getString("day_no");
-        String table_number = order.getString("table_number");
-        String orderno = order.getString("orderno");
-        String ordertime = order.getString("ordertime");
-        JSONArray order_detail = jsonObject.getJSONArray("order_detail");
-        String should = order.getString("should");
-        String total = order.getString("total");
-        String promotions = order.getString("promotions");
-        String pay_type = order.getString("pay_type");
-        pay_type = (pay_type.equals("现金支付")) ? "(未付款)" : "(已付款)";
-        String memo = order.getString("memo");
-
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send(shop_name + "\n", ALIGN_CENTER);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send(printTwoData("店内：" + shoporder_sales, "桌号：" + table_number) + "\n", DOUBLE_HEIGHT);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("--------------------------------" + "\n", RESET);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("订单号：" + orderno + "\n", ALIGN_LEFT);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("点餐时间：" + ordertime + "\n", ALIGN_LEFT);
-        printDataAction.printDataService.send("", RESET);
-        if (memo != "") {
-            printDataAction.printDataService.send("", RESET);
-            printDataAction.printDataService.send("", ALIGN_LEFT);
-            printDataAction.printDataService.send("其他要求：" + memo + "\n", DOUBLE_HEIGHT_WIDTH);
-        }
-        printDataAction.printDataService.send("--------------------------------" + "\n", RESET);
-        printDataAction.printDataService.send("", RESET);
-        for (int i = 0; i < order_detail.size(); i++) {
-            JSONObject info = order_detail.getJSONObject(i);
-            printDataAction.printDataService.send(printThreeData(info.getString("goods_name"), "X " + info.getString("qty") + " ", info.getString("price") + "\n"), DOUBLE_HEIGHT);
-        }
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("--------------------------------" + "\n", RESET);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("合计：" + should + "\n", ALIGN_RIGHT);
-        printDataAction.printDataService.send("", RESET);
-        if (promotions != "") {
-            printDataAction.printDataService.send("", RESET);
-            printDataAction.printDataService.send("优惠：" + promotions + "\n", ALIGN_RIGHT);
-        }
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("", ALIGN_RIGHT);
-        printDataAction.printDataService.send("实付：" + total + pay_type + "\n", DOUBLE_HEIGHT);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("--------------------------------" + "\n", RESET);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("\n", RESET);
-        printDataAction.printDataService.send("\n", RESET);
-        printDataAction.printDataService.send("\n", RESET);
-
-
-    }
-
-    public void waiterdiannei(JSONObject jsonObject, JSONObject order) {
-
-        JSONObject shop = jsonObject.getJSONObject("shop");
-        String shop_name = shop.getString("name");
-        String shoporder_sales = order.getString("day_no");
-        String table_number = order.getString("table_number");
-        String orderno = order.getString("orderno");
-        String ordertime = order.getString("ordertime");
-        JSONArray order_detail = jsonObject.getJSONArray("order_detail");
-        String should = order.getString("should");
-        String total = order.getString("total");
-        String promotions = order.getString("promotions");
-        String pay_type = order.getString("pay_type");
-        pay_type = (pay_type.equals("现金支付")) ? "(未付款)" : "(已付款)";
-        String memo = order.getString("memo");
-
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send(shop_name + "\n", ALIGN_CENTER);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send(printTwoData("店内(服务员):" + shoporder_sales, "桌号：" + table_number) + "\n", DOUBLE_HEIGHT);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("--------------------------------" + "\n", RESET);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("订单号：" + orderno + "\n", ALIGN_LEFT);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("点餐时间：" + ordertime + "\n", ALIGN_LEFT);
-        printDataAction.printDataService.send("", RESET);
-        if (memo != "") {
-            printDataAction.printDataService.send("", RESET);
-            printDataAction.printDataService.send("", ALIGN_LEFT);
-            printDataAction.printDataService.send("其他要求：" + memo + "\n", DOUBLE_HEIGHT_WIDTH);
-        }
-        printDataAction.printDataService.send("--------------------------------" + "\n", RESET);
-        printDataAction.printDataService.send("", RESET);
-        for (int i = 0; i < order_detail.size(); i++) {
-            JSONObject info = order_detail.getJSONObject(i);
-            printDataAction.printDataService.send(printThreeData(info.getString("goods_name"), "X " + info.getString("qty") + " ", info.getString("price") + "\n"), DOUBLE_HEIGHT);
-        }
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("--------------------------------" + "\n", RESET);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("合计：" + should + "\n", ALIGN_RIGHT);
-        printDataAction.printDataService.send("", RESET);
-        if (promotions != "") {
-            printDataAction.printDataService.send("", RESET);
-            printDataAction.printDataService.send("优惠：" + promotions + "\n", ALIGN_RIGHT);
-        }
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("", ALIGN_RIGHT);
-        printDataAction.printDataService.send("实付：" + total + pay_type + "\n", DOUBLE_HEIGHT);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("--------------------------------" + "\n", RESET);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("\n", RESET);
-        printDataAction.printDataService.send("\n", RESET);
-        printDataAction.printDataService.send("\n", RESET);
-    }
-
-    public void waimai(JSONObject jsonObject, JSONObject order) {
-        String order_type = order.getString("order_type");
-        String orderno = order.getString("orderno");
-        String ordertime = order.getString("ordertime");
-        String people = order.getString("people");
-        String should = order.getString("should");
-        String total = order.getString("total");
-        String pay_type = order.getString("pay_type");
-        pay_type = (pay_type.equals("现金支付")) ? "(未付款)" : "(已付款)";
-        String promotions = order.getString("promotions");
-        String memo = order.getString("memo");
-        String contact = order.getString("contact");
-        String tel = order.getString("tel");
-        String address = order.getString("address");
-        JSONArray order_detail = jsonObject.getJSONArray("order_detail");
-        JSONObject shop = jsonObject.getJSONObject("shop");
-        String shop_name = shop.getString("name");
-        String takeout_sales = order.getString("day_no");
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send(shop_name + "\n", ALIGN_CENTER);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("", ALIGN_CENTER);
-        printDataAction.printDataService.send(order_type + ":" + takeout_sales + "\n", DOUBLE_HEIGHT);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("--------------------------------" + "\n", RESET);
-        printDataAction.printDataService.send("用餐人数：" + people + "\n", ALIGN_LEFT);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("订单号：" + orderno + "\n", ALIGN_LEFT);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("点餐时间：" + ordertime + "\n", ALIGN_LEFT);
-        printDataAction.printDataService.send("", RESET);
-        if (memo != "") {
-            printDataAction.printDataService.send("", RESET);
-            printDataAction.printDataService.send("", ALIGN_LEFT);
-            printDataAction.printDataService.send("其他要求：" + memo + "\n", DOUBLE_HEIGHT_WIDTH);
-        }
-        printDataAction.printDataService.send("--------------------------------" + "\n", RESET);
-        printDataAction.printDataService.send("", RESET);
-        for (int i = 0; i < order_detail.size(); i++) {
-            JSONObject info = order_detail.getJSONObject(i);
-            printDataAction.printDataService.send(printThreeData(info.getString("goods_name"), "X " + info.getString("qty") + " ", info.getString("price") + "\n"), DOUBLE_HEIGHT);
-        }
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("--------------------------------" + "\n", RESET);
-        printDataAction.printDataService.send("合计：" + should + "\n", ALIGN_RIGHT);
-        printDataAction.printDataService.send("", RESET);
-        if (promotions != "") {
-            printDataAction.printDataService.send("优惠：" + promotions + "\n", ALIGN_RIGHT);
-            printDataAction.printDataService.send("", RESET);
-            printDataAction.printDataService.send("", ALIGN_RIGHT);
-        }
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("", ALIGN_RIGHT);
-        printDataAction.printDataService.send("实付：" + total + pay_type + "\n", DOUBLE_HEIGHT);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("--------------------------------" + "\n", RESET);
-        printDataAction.printDataService.send(contact + "\n", DOUBLE_HEIGHT_WIDTH);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send(tel + "\n", DOUBLE_HEIGHT_WIDTH);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send(address + "\n", DOUBLE_HEIGHT_WIDTH);
-        printDataAction.printDataService.send("\n", RESET);
-        printDataAction.printDataService.send("\n", RESET);
-        printDataAction.printDataService.send("\n", RESET);
-    }
-
-    public void yuding(JSONObject jsonObject, JSONObject order) {
-
-        JSONObject shop = jsonObject.getJSONObject("shop");
-        String shop_name = shop.getString("name");
-        String booking_sales = order.getString("day_no");
-        String people = order.getString("people");
-        String orderno = order.getString("orderno");
-        String ordertime = order.getString("ordertime");
-        String entertime = order.getString("entertime");
-
-
-        JSONArray order_detail = jsonObject.getJSONArray("order_detail");
-        String should = order.getString("should");
-        String total = order.getString("total");
-        String contact = order.getString("contact");
-        String tel = order.getString("tel");
-        String promotions = order.getString("promotions");
-        String memo = order.getString("memo");
-        String pay_type = order.getString("pay_type");
-        pay_type = (pay_type.equals("现金支付")) ? "(未付款)" : "(已付款)";
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send(shop_name + "\n", ALIGN_CENTER);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("", ALIGN_CENTER);
-        printDataAction.printDataService.send("预订：" + booking_sales + "\n", DOUBLE_HEIGHT);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("--------------------------------" + "\n", RESET);
-        printDataAction.printDataService.send("用餐人数：" + people + "\n", ALIGN_LEFT);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("订单号：" + orderno + "\n", ALIGN_LEFT);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("点餐时间：" + ordertime + "\n", ALIGN_LEFT);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("到店时间：" + entertime + "\n", ALIGN_LEFT);
-        if (memo != "") {
-            printDataAction.printDataService.send("", RESET);
-            printDataAction.printDataService.send("", ALIGN_LEFT);
-            printDataAction.printDataService.send("其他要求：" + memo + "\n", DOUBLE_HEIGHT_WIDTH);
-        }
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("--------------------------------" + "\n", RESET);
-        for (int i = 0; i < order_detail.size(); i++) {
-            JSONObject info = order_detail.getJSONObject(i);
-            printDataAction.printDataService.send(printThreeData(info.getString("goods_name"), "X " + info.getString("qty") + " ", info.getString("price") + "\n"), DOUBLE_HEIGHT);
-        }
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("--------------------------------" + "\n", RESET);
-        printDataAction.printDataService.send("合计：" + should + "\n", ALIGN_RIGHT);
-        printDataAction.printDataService.send("", RESET);
-        if (promotions != "") {
-            printDataAction.printDataService.send("优惠：" + promotions + "\n", ALIGN_RIGHT);
-            printDataAction.printDataService.send("", RESET);
-            printDataAction.printDataService.send("", ALIGN_RIGHT);
-        }
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("", ALIGN_RIGHT);
-        printDataAction.printDataService.send("实付：" + total + pay_type + "\n", DOUBLE_HEIGHT);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send("--------------------------------" + "\n", RESET);
-        printDataAction.printDataService.send(contact + "\n", DOUBLE_HEIGHT_WIDTH);
-        printDataAction.printDataService.send("", RESET);
-        printDataAction.printDataService.send(tel + "\n", DOUBLE_HEIGHT_WIDTH);
-        printDataAction.printDataService.send("\n", RESET);
-        printDataAction.printDataService.send("\n", RESET);
-        printDataAction.printDataService.send("\n", RESET);
-    }
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
@@ -840,14 +271,16 @@ public class PrintDataActivity extends AppCompatActivity {
                     fileIO.putBlueToothDrive(context, "");
                     startActivity(intent);
                     finish();
+                    printDataAction.getService().onDestroy();
                     break;
                 case AlertDialog.BUTTON_NEGATIVE:// "取消"第二个按钮取消对话框
                     break;
                 default:
                     break;
-          }
+            }
         }
     };
+
 
 }
 

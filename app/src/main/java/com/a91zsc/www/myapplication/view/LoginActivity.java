@@ -16,6 +16,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.a91zsc.www.myapplication.R;
+import com.a91zsc.www.myapplication.util.toolsFileIO;
 import com.a91zsc.www.myapplication.util.utilsTools;
 
 import okhttp3.FormBody;
@@ -25,15 +26,13 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 
 import static android.os.SystemClock.sleep;
+import static com.a91zsc.www.myapplication.string.staticBluetoothData.userLoginURLVerification;
 
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity implements View.OnClickListener{
 
     private EditText accountEdit;
-
     private EditText passwordEdit;
-
     private Button login;
-
     private OkHttpClient client;
     public Context context;
     private Response response = null;
@@ -45,66 +44,74 @@ public class LoginActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        SharedPreferences pref1 = getSharedPreferences(USER, MODE_PRIVATE);
-        String account = pref1.getString("acc", "");
-
-        if (!(account == null || account.length() <= 0)) {
-            intent = new Intent(LoginActivity.this, BluetoothActivity.class);
-            startActivity(intent);
-            finish();
-        }
+        versionUser();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
         getSupportActionBar().hide();
         accountEdit = (EditText) findViewById(R.id.account);
         passwordEdit = (EditText) findViewById(R.id.password);
         login = (Button) findViewById(R.id.login);
+        login.setOnClickListener(this);
+        }
+        @Override
+        public void onClick(View v){
+            switch (v.getId()){
+                case R.id.login:
+                    sendVersionUser();
+                    break;
+                default:
+                    System.out.println("default");
+                    break;
 
-        login.setOnClickListener(new View.OnClickListener() {
+            }
+
+        }
+    public void sendVersionUser(){
+                             if (utilsTools.isFastClick()) {
+                                 final String account = accountEdit.getText().toString();
+                                 final String password = passwordEdit.getText().toString();
+                                 new Thread(new Runnable() {
                                      @Override
-                                     public void onClick(View v) {
-                                         if (utilsTools.isFastClick()) {
-                                             final String account = accountEdit.getText().toString();
-                                             final String password = passwordEdit.getText().toString();
-                                             new Thread(new Runnable() {
-                                                 @Override
-                                                 public void run() {
-                                                     try {
-                                                         client = new OkHttpClient();
-                                                         RequestBody requestBody = new FormBody.Builder()
-                                                                 .add("account", account)
-                                                                 .add("password", password)
-                                                                 .build();
-                                                         Request request = new Request.Builder()
-                                                                 .url("https://www.91zsc.com/Home/Print/login")
-                                                                 .post(requestBody)
-                                                                 .build();
-                                                         response = client.newCall(request).execute();
-                                                         responseData = response.body().string();
-                                                         Log.e("responseData",responseData);
-                                                         if (responseData.equals(CODELOGIN)) {
-                                                             SharedPreferences.Editor editor1 = getSharedPreferences(USER, MODE_PRIVATE).edit();
-                                                             editor1.putString("acc", account);
-                                                             editor1.putString("password", password);
-                                                             editor1.apply();
-                                                             Intent intent = new Intent(LoginActivity.this, BluetoothActivity.class);
-                                                             startActivity(intent);
-                                                             finish();
-                                                         } else{
-                                                             startFunction();
-                                                         }
+                                     public void run() {
+                                         try {
+                                             client = new OkHttpClient();
+                                             RequestBody requestBody = new FormBody.Builder()
+                                                     .add("account", account)
+                                                     .add("password", password)
+                                                     .build();
+                                             Request request = new Request.Builder()
+                                                     .url(userLoginURLVerification)
+                                                     .post(requestBody)
+                                                     .build();
+                                             response = client.newCall(request).execute();
+                                             responseData = response.body().string();
+                                             if (responseData.equals(CODELOGIN)) {
+                                                 SharedPreferences.Editor editor1 = getSharedPreferences(USER, MODE_PRIVATE).edit();
+                                                 editor1.putString("acc", account);
+                                                 editor1.putString("password", password);
+                                                 editor1.apply();
+                                                 Intent intent = new Intent(LoginActivity.this, BluetoothActivity.class);
+                                                 startActivity(intent);
+                                                 finish();
+                                             } else{
+                                                 startFunction();
+                                             }
 
-                                                     } catch (Exception e) {
-                                                         e.printStackTrace();
-
-                                                     }
-                                                 }
-                                             }).start();
-
+                                         } catch (Exception e) {
+                                             e.printStackTrace();
                                          }
                                      }
-                                 }
-        );
+                                 }).start();
+                             }
+                         }
+    public void versionUser(){
+        SharedPreferences pref1 = getSharedPreferences(USER, MODE_PRIVATE);
+        String account = pref1.getString("acc", "");
+        if (!(account == null || account.length() <= 0)) {
+            intent = new Intent(LoginActivity.this, BluetoothActivity.class);
+            startActivity(intent);
+            finish();
+        }
     }
     public void startFunction() {
         runOnUiThread(new Runnable() {
