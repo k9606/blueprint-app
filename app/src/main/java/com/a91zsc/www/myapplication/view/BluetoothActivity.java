@@ -3,6 +3,7 @@ package com.a91zsc.www.myapplication.view;
 import android.app.Activity;
 import android.bluetooth.BluetoothAdapter;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -11,6 +12,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.v7.app.AlertDialog;
 import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Button;
@@ -32,7 +34,7 @@ import static com.a91zsc.www.myapplication.string.staticBluetoothData.versionUpd
 
 public class BluetoothActivity extends Activity {
     LinearLayout linearLayout;
-    public Context context;
+    public static Context context;
     private BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
     private String url = "";
     Uri uri = null;
@@ -186,17 +188,16 @@ public class BluetoothActivity extends Activity {
             deition.setEnabled(true);
 //            linearLayout.setBackgroundColor(Color.parseColor("#00FF00"));
             deition.setTextColor(Color.parseColor("#FF0000"));
-//            new AlertDialog.Builder(this)
-//                    .setTitle("提示")
-////                    .setMessage(jsonObject.getString("msg"))
-//                    .setMessage("当前系统有最新版本的BLUETOOTH 推送，更新了XX特征，修复了，xxxxBUG")
-//                    .setPositiveButton("下载更新",new DialogInterface.OnClickListener() {
-//                        @Override
-//                        public void onClick(DialogInterface dialog, int which) {
-//                            VersioUpdate();
-//                        }
-//                    })
-//                    .show();
+            new AlertDialog.Builder(this)
+                    .setTitle("提示")
+                    .setMessage(jsonObject.getString("msg"))
+                    .setPositiveButton("下载更新",new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            VersioUpdate();
+                        }
+                    })
+                    .show();
 
         }
     }

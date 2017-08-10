@@ -27,6 +27,7 @@ import okhttp3.Response;
 
 import static android.os.SystemClock.sleep;
 import static com.a91zsc.www.myapplication.string.staticBluetoothData.userLoginURLVerification;
+import static com.a91zsc.www.myapplication.string.staticBluetoothData.usernameOrPassworlderror;
 
 public class LoginActivity extends AppCompatActivity implements View.OnClickListener{
 
@@ -116,7 +117,7 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     public void startFunction() {
         runOnUiThread(new Runnable() {
             public void run() {
-                Toast.makeText(LoginActivity.this, "密码或用户名错误！", Toast.LENGTH_LONG).show();
+                Toast.makeText(LoginActivity.this, usernameOrPassworlderror, Toast.LENGTH_LONG).show();
 
             }
         });

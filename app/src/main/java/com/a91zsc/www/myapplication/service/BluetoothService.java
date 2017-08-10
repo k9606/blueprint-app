@@ -24,10 +24,15 @@ import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
 import com.a91zsc.www.myapplication.R;
+import com.a91zsc.www.myapplication.util.printUtils;
 import com.a91zsc.www.myapplication.util.showTime;
 import com.a91zsc.www.myapplication.util.toolsFileIO;
 import com.a91zsc.www.myapplication.util.utilsTools;
+import com.a91zsc.www.myapplication.view.BluetoothActivity;
 import com.a91zsc.www.myapplication.view.LoginActivity;
+
+import static com.a91zsc.www.myapplication.string.staticBluetoothData.bluetoothContent;
+import static com.a91zsc.www.myapplication.string.staticBluetoothData.netWorkContent;
 
 public class BluetoothService extends Service {
     private String driverName;
@@ -53,8 +58,11 @@ public class BluetoothService extends Service {
     private static final int SHOW = 2;
 
     @Override
+    public void onCreate(){
+        super.onCreate();
+    }
+    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.e("onstartcommand", "onstartcommand");
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -97,8 +105,16 @@ public class BluetoothService extends Service {
                     intent.setClassName(context,
                             "com.a91zsc.www.myapplication.view.PrintDataActivity");
                     intent.putExtra("deviceAddress", device.getAddress());
-                    context.startActivity(intent);
-                    onDestroy();
+                    intent.putExtra("activity","BluetoothActivity");
+                    toast.cancel();
+                    if(showTime.getAPNType(BluetoothActivity.context)){
+                        showText(bluetoothContent);
+                        context.startActivity(intent);
+                        onDestroy();
+                    }else {
+                        showText(netWorkContent);
+
+                    }
                 }
             }
         });
@@ -161,7 +177,6 @@ public class BluetoothService extends Service {
         this.bondDevices = new ArrayList<BluetoothDevice>();
         this.searchDevices();
         this.initIntentFilter();
-
     }
 
     private void initIntentFilter() {
@@ -198,25 +213,35 @@ public class BluetoothService extends Service {
     public void addBandDevices(BluetoothDevice device) {
         if (AA) {
             this.driverName = fileIO.getBlueTooth(context);
+            AA = false;
         }
-        if (!this.bondDevices.contains(device)) {
-            this.bondDevices.add(device);
-        }
-        if (driverName != "") {
-            if (device.toString().equals(driverName)) {
+        if (driverName != ""&&device.toString().equals(driverName)) {
                 bluetoothAdapter.cancelDiscovery();
                 intent = new Intent();
                 intent.setClassName(context,
                         "com.a91zsc.www.myapplication.view.PrintDataActivity");
                 intent.putExtra("deviceAddress", device.getAddress());
+                intent.putExtra("activity","BluetoothActivity");
                 BB = true;
                 toast.cancel();
-                context.startActivity(intent);
-                onDestroy();
+                if(showTime.getAPNType(BluetoothActivity.context)){
+                    showText(bluetoothContent);
+                    context.startActivity(intent);
+                    onDestroy();
+                }else {
+                    showText(netWorkContent);
+                }
+
+        }else {
+            if (!this.bondDevices.contains(device)) {
+                this.bondDevices.add(device);
             }
         }
     }
 
+    public void showText(String text){
+        Toast.makeText(BluetoothActivity.context,text,Toast.LENGTH_SHORT).show();
+    }
 
     /**
      * 蓝牙广播接收器
@@ -311,6 +336,6 @@ public class BluetoothService extends Service {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        Log.e("Service", "ServiceOndestroy");
+        context.unregisterReceiver(receiver);
     }
 }

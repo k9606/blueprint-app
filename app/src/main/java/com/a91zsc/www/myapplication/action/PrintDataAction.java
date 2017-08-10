@@ -22,16 +22,14 @@ public class PrintDataAction  {
     private TextView connectState = null;
     private String deviceAddress = null;
     public PrintDataService printDataService = null;
-    private BluetoothAdapter bluetoothAdapter = BluetoothAdapter
-            .getDefaultAdapter();
 
     //初始化参数
-    public PrintDataAction(Context context, String deviceAddress, TextView connectState, Button a, Button b) {
+    public PrintDataAction(Context context, String deviceAddress, TextView connectState) {
         super();
         this.context = context;
         this.deviceAddress = deviceAddress;
         this.connectState = connectState;
-        this.printDataService = new PrintDataService(this.context,this.deviceAddress,connectState,a,b);
+        this.printDataService = new PrintDataService(this.context,this.deviceAddress,connectState);
         this.initView();
     }
 

@@ -22,10 +22,13 @@ import android.bluetooth.BluetoothSocket;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.PixelFormat;
 import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
+import android.net.Network;
 import android.net.NetworkInfo;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
@@ -72,7 +75,7 @@ import static com.a91zsc.www.myapplication.string.staticBluetoothData.takoutFood
 
 public class PrintDataService extends Service {
     private Context context;
-    private Context contextprint;
+    private static Context contextprint;
     private String deviceAddress = null;
     private BluetoothAdapter bluetoothAdapter = BluetoothAdapter
             .getDefaultAdapter();
@@ -89,113 +92,52 @@ public class PrintDataService extends Service {
     private JSONObject jsonObjectThread = null;
     private JSONObject orderThread;
     private String order_type;
-    private Button button1;
-    private Button button2;
-    NotificationCompat.Builder builder;
-    NotificationManager notifyManager;
-    private Boolean isConnect = true;
-    private static final int SHOW = 0;
     public TextView textView;
-    public final static int NOTIFICATION = 1;
-    public final static int NOTIFICATION2 = 2;
     private String msg_service = null;
+    private static final String DYNAMICACTION = "com.www.printService";
     public static final WebSocketConnection wsC = new WebSocketConnection();
     public printUtils printutils = new printUtils();
     private String string = null;
-    private WindowManager.LayoutParams wmParams;
-    private WindowManager mWindowManager;
-    private LinearLayout mFloatLayout;
-    private Button mFloatView;
+    showTime time = new showTime();
 
 
     public PrintDataService() {
     }
 
-    //    @Override
-//    public void onCreate(){
-//        super.onCreate();
-//        sendNotification();
-//        dataProcessing();
-//    }
     @Override
     public IBinder onBind(Intent intent) {
+        Log.e("Socket", "onBind");
         return null;
     }
-
     @Override
     public void onCreate() {
         super.onCreate();
-        sendNotification();
+        contextprint = this;
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
         dataProcessing();
         contextprint = this;
-//        showWindows();
-
+        return START_NOT_STICKY;
     }
-//    public void showWindows() {
-//        Message msg = new Message();
-//        msg.what = SHOW;
-//        msg.obj = "1";
-//        handler.sendMessage(msg);
-//    }
-
-//    class NetworkChangeReceiver extends BroadcastReceiver {
-//        @Override
-//        public void onReceive(Context context, Intent intent) {
-//            ConnectivityManager connectionManager = (ConnectivityManager)
-//                    getSystemService(Context.CONNECTIVITY_SERVICE);
-//            NetworkInfo networkInfo = connectionManager.getActiveNetworkInfo();
-//            if (networkInfo != null && networkInfo.isAvailable()) {
-//                Log.e("contiont", "有网络重连");
-//                dataProcessing();
-//            }else if(networkInfo ==null){
-//                Log.e("contiont", "暂无网络");
-//            }
-//        }
-//    }
-
-//    public boolean getAPNType(Context context,Boolean isNetWork) {
-//            this.connManager = (ConnectivityManager) context
-//                    .getSystemService(Context.CONNECTIVITY_SERVICE);
-//            this.networkInfo = connManager.getActiveNetworkInfo();
-//            int isnetwork = networkInfo.getType();
-//            if(isnetwork!=CURRENT_NETWORK_STATES_NO&&isNetWork){
-//               this.netWorkIs = true;
-//            }
-//            return netWorkIs;
-//
-//        }
 
     @Override
     public void onDestroy() {
         super.onDestroy();
-        printutils.postData(context);
-        
-        disconnect();
-
+        printutils.closeSocket(context);
+//        disconnect();
     }
 
-    private void sendNotification() {
-        //获取NotificationManager实例
-        notifyManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        //实例化NotificationCompat.Builde并设置相关属性
-        builder = new NotificationCompat.Builder(this)
-                //设置小图标
-                .setSmallIcon(R.mipmap.ic_launcher)
-                //设置通知标题
-                .setContentTitle("蓝牙打印")
-                //设置通知内容
-                .setContentText("打印服务正在后台运行中");
-        notifyManager.notify(NOTIFICATION, builder.build());
-        startForeground(NOTIFICATION, builder.getNotification());
+public void oncolose(){
+    Intent intentBroadcast = new Intent();
+    intentBroadcast.setAction(DYNAMICACTION);
+    sendBroadcast(intentBroadcast);
+    Log.e("自定义动态广播","广播");
+}
 
-
-    }
-
-
-    public PrintDataService(Context context, String deviceAddress, TextView textView, Button send, Button serean) {
+    public PrintDataService(Context context, String deviceAddress, TextView textView) {
         super();
-        this.button1 = send;
-        this.button2 = serean;
         this.context = context;
         this.deviceAddress = deviceAddress;
         this.textView = textView;
@@ -219,23 +161,21 @@ public class PrintDataService extends Service {
                 isConnection = false;
             }
         }
-
         return isConnection;
     }
 
 
-    public static void disconnect() {
-        try {
-            bluetoothSocket.close();
-            outputStream.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+//    public static void disconnect() {
+//        try {
+//            bluetoothSocket.close();
+//            outputStream.close();
+//        } catch (IOException e) {
+//            e.printStackTrace();
+//        }
+//    }
 
     public void sendInfo() {
         printutils.sendInfo("打印机测试" + "\n\n\n\n");
-        //BluetoothServiceSend
     }
 
     //    public void showConnect(){
@@ -261,60 +201,70 @@ public class PrintDataService extends Service {
 //        }
 //        Log.e("Connetct","连接成功");
 //    }
-    @Override
-    public int onStartCommand(Intent ietent, int flags, int starId) {
-        return Service.START_STICKY;
-    }
+
 
     public void dataProcessing() {
         new Thread(new Runnable() {
             @Override
             public void run() {
+
+
                 try {
                     wsC.connect(socketContentURL, new WebSocketHandler() {
                         @Override
                         public void onOpen() {
-                            Log.e("Socket", "执行一次");
+                            Log.e("Socket", "onOpen");
+                            if(PrintDataActivity.BluetoothIntent!=null){
+                                printutils.IntentOutPut(wsC,outputStream);
+                                printutils.setButton();
+                            }
                         }
-
                         @Override
                         public void onTextMessage(String payload) {
-                            jsonObject = JSONObject.fromObject(payload);
-                            Log.e("Socket", jsonObject + "");
-                            order = jsonObject.getJSONObject("order");
-                            order_type = order.getString("order_type");
-                            DataOrder(jsonObject, order_type, order);
+                            if(payload.equals("")||payload.equals(null)){
+                            }else {
+                                DataOrder(payload);
+                            }
                         }
                         @Override
                         public void onClose(int code, String reason) {
-                            Log.e("onClose", "socket 断开");
-                            dataProcessing();
+                            Log.e("websocket","onClose");
+                            Log.e("断开的时候",wsC.toString());
+                            MediaPlayer mediaPlayer;
+                            mediaPlayer = MediaPlayer.create(contextprint, R.raw.audio_end);
+                            mediaPlayer.start();
+                            if (PrintDataActivity.BluetoothIntent!=null&&time.getAPNType(PrintDataActivity.context)){
+                                dataProcessing();
+                            }else {
+                                oncolose();
+                                Log.e("发送广播","onClose");
+                            }
                         }
                     });
+                    util.Delayed(3000);
                 } catch (WebSocketException e) {
+
                     e.printStackTrace();
                 }
             }
         }).start();
+
     }
 
-    public void DataOrder(JSONObject jsonObject, String stringdata, JSONObject order) {
-        printutils.IntentOutPut(wsC,outputStream);
+    public void DataOrder(String payload) {
+        jsonObject = JSONObject.fromObject(payload);
+        Log.e("Socket", jsonObject + "");
+        order = jsonObject.getJSONObject("order");
+        order_type = order.getString("order_type");
         if (order.has("msg")) {
             msg_service = order.getString("msg");
-            string = stringdata;
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    switch (string) {
+                    switch (order_type) {
                         case "bind":
                             Log.e("banding", "绑定线程");
-//                            new Thread(new Runnable() {
-//                                @Override
-//                                public void run() {
-                            printutils.bind(msg_service, contextprint);
-//                                }
-//                            }).start();
+                            printutils.bind(msg_service,contextprint);
                             break;
                         case "test":
                             for (int i = 0; i < PrintDataActivity.shulian; i++) {
@@ -332,9 +282,8 @@ public class PrintDataService extends Service {
                 }
             }).start();
         } else {
-            switch (stringdata) {
+            switch (order_type) {
                 case takoutFood:
-                    Log.e("Socket", "外卖");
                     jsonObjectThread = jsonObject;
                     orderThread = order;
                     for (int i = 0; i < PrintDataActivity.shulian; i++) {
@@ -344,12 +293,10 @@ public class PrintDataService extends Service {
                                 printutils.waimai(jsonObjectThread, orderThread);
                             }
                         }).start();
-
-                        util.Delayed(3000);
+                        util.Delayed(4000);
                     }
                     break;
                 case restaurant:
-                    Log.e("Socket", "店内");
                     jsonObjectThread = jsonObject;
                     orderThread = order;
                     for (int i = 0; i < PrintDataActivity.shulian; i++) {
@@ -359,11 +306,10 @@ public class PrintDataService extends Service {
                                 printutils.diannei(jsonObjectThread, orderThread);
                             }
                         }).start();
-                        util.Delayed(3000);
+                        util.Delayed(4000);
                     }
                     break;
                 case restaurantWaiter:
-                    Log.e("Socket", "店内服务员");
                     jsonObjectThread = jsonObject;
                     orderThread = order;
                     for (int i = 0; i < PrintDataActivity.shulian; i++) {
@@ -373,11 +319,10 @@ public class PrintDataService extends Service {
                                 printutils.waiterdiannei(jsonObjectThread, orderThread);
                             }
                         }).start();
-                        util.Delayed(3000);
+                        util.Delayed(4000);
                     }
                     break;
                 case resevre:
-                    Log.e("Socket", "预定到店");
                     jsonObjectThread = jsonObject;
                     orderThread = order;
                     for (int i = 0; i < PrintDataActivity.shulian; i++) {
@@ -387,7 +332,7 @@ public class PrintDataService extends Service {
                                 printutils.yuding(jsonObjectThread, orderThread);
                             }
                         }).start();
-                        util.Delayed(3000);
+                        util.Delayed(5000);
                     }
                     break;
                 default:
@@ -400,23 +345,11 @@ public class PrintDataService extends Service {
         printutils.test();
     }
 
-//    Handler handler = new Handler() {
-//        @Override
-//        public void handleMessage(Message msg) {
-//            super.handleMessage(msg);
-//            switch (msg.what) {
-//                case SHOW:
-////                    createFloatView();
-//                    break;
-//                default:
-//                    break;
-//
-//            }
-//        }
-
-
-
-
-
-    }
+//    public void stop(){
+//        Log.e("service","暂停服务");
+//        Intent intent = new Intent(context,PrintDataActivity.class);
+//        stopService(intent);
+//        onDestroy();
+//    }
+}
 

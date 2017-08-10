@@ -1,5 +1,6 @@
 package com.a91zsc.www.myapplication.view;
 
+import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -77,24 +78,20 @@ import static android.R.attr.filter;
 public class PrintDataActivity extends AppCompatActivity implements View.OnClickListener {
 
 
-    public boolean isNetWork = false;
-    public Context context;
+    public static Context context;
     public TextView connectState = null;
     PrintDataAction printDataAction;
     PrintDataService printDataService;
+    private static final String DYNAMICACTION = "com.www.printService";
     private toolsFileIO fileIO = new toolsFileIO();
     private PopupWindow mPopWindow;
     public static int shulian = 1;
-    private Button saveSet;
-    private Button send;
+    public static Button saveSet;
+    public static Button send;
     private Button command;
-
-//    @Bind(R.id.start) Button start;
-//    @Bind(R.id.wsStart) Button stop;
-//    @Bind(R.id.SetData) Button bind;
-//    @Bind(R.id.unbind) Button unbind;
-//    private NetworkChangeReceiver networkChangeReceiver =new NetworkChangeReceiver();;
-
+    private NetworkChangeReceiver networkChangeReceiver;
+    private IntentFilter intentFilter;
+    public static String BluetoothIntent = null;
 
     /**
      * 打印三列时，第一列汉字最多显示几个文字
@@ -111,16 +108,91 @@ public class PrintDataActivity extends AppCompatActivity implements View.OnClick
         send = (Button) this.findViewById(R.id.send);
         command = (Button) this.findViewById(R.id.wsStart);
         saveSet = (Button) findViewById(R.id.SetData);
-        printDataAction = new PrintDataAction(this.context, this.getDeviceAddress(), connectState, send, command);
-//        IntentFilter intentFilter = new IntentFilter();
-//        intentFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
-//        registerReceiver(networkChangeReceiver, intentFilter);
+        printDataAction = new PrintDataAction(this.context, this.getDeviceAddress(), connectState);
         send.setOnClickListener(this);
         command.setOnClickListener(this);
         saveSet.setOnClickListener(this);
+        send.setEnabled(false);
+        saveSet.setEnabled(false);
+        testWeb();
         printDataService = printDataAction.getService();
         getData(context);
-        ButterKnife.bind(this);
+    }
+
+    //
+//    @Override
+//    protected void onPause() {
+//        super.onPause();
+//        //有可能在执行完onPause或onStop后,系统资源紧张将Activity杀死,所以有必要在此保存持久数据
+//    }
+//    @Override
+//    protected void onStop() {
+//        super.onStop();
+//
+//    }
+    public void testWeb() {
+        intentFilter = new IntentFilter();
+        intentFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
+//        intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
+//        intentFilter.addAction(Intent.ACTION_SCREEN_ON);
+//        intentFilter.addAction(Intent.ACTION_USER_PRESENT);
+        intentFilter.addAction(DYNAMICACTION);
+        networkChangeReceiver = new NetworkChangeReceiver();
+        registerReceiver(networkChangeReceiver, intentFilter);
+    }
+
+    public String actionIntent = null;
+    /**
+     * 服务器断开重连
+     */
+    class NetworkChangeReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String action = intent.getAction();
+            ConnectivityManager connectionManager = (ConnectivityManager)
+                    getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = connectionManager.getActiveNetworkInfo();
+            Log.e("Service",action+"");
+            if(action.equals(DYNAMICACTION)){
+                actionIntent = action;
+            }
+            if (networkInfo != null && networkInfo.isAvailable()) {
+                Log.e("actionIntent",actionIntent+"");
+                if (actionIntent != null){
+                    printDataService.dataProcessing();
+                    actionIntent = null;
+                    Log.e("Service","重连成功");
+                }else if(!isServiceRunning()){
+                    startService(new Intent(context, PrintDataService.class));
+                }
+            }
+        }
+    }
+
+//    public void send(){
+//        IntentFilter filter_system = new IntentFilter();
+//        filter_system.addAction(DYNAMICACTION);
+//        registerReceiver(systemReceiver, filter_system);
+//    }
+//
+//    private BroadcastReceiver systemReceiver = new BroadcastReceiver(){
+//        @Override
+//        public void onReceive(Context context, Intent intent){
+//            if (intent.getAction().equals(DYNAMICACTION)){
+//            }
+//        }
+//    };
+
+
+
+    private boolean isServiceRunning() {
+        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if ("com.a91zsc.www.myapplication.service.PrintDataService".equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override
@@ -133,14 +205,15 @@ public class PrintDataActivity extends AppCompatActivity implements View.OnClick
                 showPopupWindow();
                 break;
             case R.id.send:
+//                printDataService.getAPNType(context);
+//                isServiceRunning();
                 printDataService.sendInfo();
+//                printDataService.onDestroy();
                 break;
             default:
                 break;
         }
-
     }
-
     public void getData(Context context) {
         if (fileIO.getSetData(context) > 1) {
             this.shulian = fileIO.getSetData(context);
@@ -195,7 +268,6 @@ public class PrintDataActivity extends AppCompatActivity implements View.OnClick
         mPopWindow.showAsDropDown(connectState);
     }
 
-
     /**
      * 获得从上一个Activity传来的蓝牙地址
      *
@@ -203,6 +275,7 @@ public class PrintDataActivity extends AppCompatActivity implements View.OnClick
      */
     public String getDeviceAddress() {
         Intent intent = this.getIntent();
+        this.BluetoothIntent = intent.getStringExtra("activity");
         if (intent != null) {
             String Bluetooth = intent.getStringExtra("deviceAddress");
             return Bluetooth;
@@ -212,37 +285,14 @@ public class PrintDataActivity extends AppCompatActivity implements View.OnClick
     }
 
     /**
-     * 关闭服务
+     * activity
      */
     @Override
     protected void onDestroy() {
         super.onDestroy();
-
+        unregisterReceiver(networkChangeReceiver);
     }
 
-
-    /**
-     * 服务器断开重连
-     */
-    class NetworkChangeReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            ConnectivityManager connectionManager = (ConnectivityManager)
-                    getSystemService(Context.CONNECTIVITY_SERVICE);
-            NetworkInfo networkInfo = connectionManager.getActiveNetworkInfo();
-            if (networkInfo != null && networkInfo.isAvailable()) {
-                if (isNetWork) {
-                    isNetWork = false;
-                    PrintDataActivity.this.recreate();
-                }
-            }
-        }
-    }
-
-
-    private void toastLog(String s) {
-        Toast.makeText(this, s, Toast.LENGTH_SHORT).show();
-    }
 
 
     public boolean onKeyDown(int keyCode, KeyEvent event) {
@@ -271,7 +321,8 @@ public class PrintDataActivity extends AppCompatActivity implements View.OnClick
                     fileIO.putBlueToothDrive(context, "");
                     startActivity(intent);
                     finish();
-                    printDataAction.getService().onDestroy();
+                    PrintDataActivity.BluetoothIntent = null;
+                    printDataService.onDestroy();
                     break;
                 case AlertDialog.BUTTON_NEGATIVE:// "取消"第二个按钮取消对话框
                     break;
@@ -280,7 +331,5 @@ public class PrintDataActivity extends AppCompatActivity implements View.OnClick
             }
         }
     };
-
-
 }
 
