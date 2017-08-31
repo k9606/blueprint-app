@@ -19,6 +19,7 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
     <uses-permission android:name="android.permission.INTERNET"/>
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
+    <uses-permission android:name="android.permission.GET_TASKS" />
     <!-- <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" /> -->
     <!-- <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /> -->
 
@@ -29,7 +30,9 @@
         android:largeHeap="true"
         android:persistent="true"
         android:supportsRtl="true"
-    android:theme="@style/AppTheme">
+        android:launchMode="standard"
+        android:theme="@style/AppTheme"
+        android:name=".application.CustomApplication">
 
         <activity android:name=".view.LoginActivity">
             <intent-filter>
@@ -40,7 +43,19 @@
         </activity>
         <activity android:name=".view.BluetoothActivity"/>
         <activity android:name=".view.PrintDataActivity"/>
-
+        <receiver android:name=".application.bluetoothReceiver">
+            <intent-filter android:priority="999">
+                <action android:name="android.bluetooth.device.action.ACL_CONNECTED"/>
+                <action android:name="android.bluetooth.device.action.ACL_DISCONNECTED"/>
+                <action android:name="android.bluetooth.device.action.FOUND"/>
+                <action android:name="android.bluetooth.device.action.ACL_DISCONNECT_REQUESTED"/>
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".application.IntentConnection">
+            <intent-filter android:priority="1000">
+                <action android:name="android.netWork.onclose"/>
+            </intent-filter>
+        </receiver>
         <service
             android:name=".service.PrintDataService"
             android:enabled="true"

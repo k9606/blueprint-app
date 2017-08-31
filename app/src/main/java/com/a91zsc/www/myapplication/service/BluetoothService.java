@@ -2,8 +2,8 @@ package com.a91zsc.www.myapplication.service;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.HashMap;
 
+import android.app.Activity;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
@@ -14,7 +14,7 @@ import android.content.IntentFilter;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
-import android.support.annotation.Nullable;
+import android.support.v4.util.ArrayMap;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
@@ -24,94 +24,150 @@ import android.widget.SimpleAdapter;
 import android.widget.Toast;
 
 import com.a91zsc.www.myapplication.R;
-import com.a91zsc.www.myapplication.util.printUtils;
+import com.a91zsc.www.myapplication.application.CustomApplication;
+import com.a91zsc.www.myapplication.util.bluetoothUtil;
 import com.a91zsc.www.myapplication.util.showTime;
 import com.a91zsc.www.myapplication.util.toolsFileIO;
 import com.a91zsc.www.myapplication.util.utilsTools;
 import com.a91zsc.www.myapplication.view.BluetoothActivity;
-import com.a91zsc.www.myapplication.view.LoginActivity;
+import com.a91zsc.www.myapplication.view.PrintDataActivity;
 
-import static com.a91zsc.www.myapplication.string.staticBluetoothData.bluetoothContent;
+import net.sf.json.JSONArray;
+import net.sf.json.JSONObject;
+
 import static com.a91zsc.www.myapplication.string.staticBluetoothData.netWorkContent;
 
 public class BluetoothService extends Service {
-    private String driverName;
-    private Context context;
-    private BluetoothAdapter bluetoothAdapter = BluetoothAdapter
-            .getDefaultAdapter();                               //本地蓝牙适配器
-    private ArrayList<BluetoothDevice> unbondDevices = null;    // 用于存放未配对蓝牙设备
-    private ArrayList<BluetoothDevice> bondDevices = null;      // 用于存放已配对蓝牙设备
-    private ListView unbondDevicesListView = null;              //加载未绑定buuletooth 视图
-    private ListView bondDevicesListView = null;                //加载绑定buletooth视图
+    private static Context context;
+    private Intent intent = null;
+    private BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+    private ArrayList<BluetoothDevice> unbondDevices = null, bondDevices = null;
+    private ListView unbondDevicesListView = null, bondDevicesListView = null;
+    private static final int ONBIND = 0, BIND = 1, SHOW = 2, CREATEBIND = 3;
+    private ArrayList<ArrayMap<String, Object>> array = null;
+    private ArrayMap<String, Object> arrayMap;
     private toolsFileIO fileIO = new toolsFileIO();
-    private static boolean AA = true;
-    Intent intent;
-    private boolean BB = false;
-    private Boolean aboolean = true;
-    showTime showTime = new showTime();
+    private showTime showTime = new showTime();
+    private bluetoothUtil blueconnt = new bluetoothUtil();
+    private boolean bluetoothIs = true;
+    private JSONObject jsonArrayType = new JSONObject();
+    private JSONArray jsonArrayId = null;
     private Toast toast = null;
-    private Intent intentservice = null;
+    private BluetoothDevice dervicebind, device;
     private String action = null;
-    private Context contextservice;
-    private static final int ONBIND = 0;
-    private static final int BIND = 1;
-    private static final int SHOW = 2;
-
-    @Override
-    public void onCreate(){
-        super.onCreate();
-    }
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
-        return super.onStartCommand(intent, flags, startId);
-    }
-
-    public void searchDevices() {
-        bluetoothAdapter.cancelDiscovery();
-        this.aboolean = true;
-        this.bluetoothAdapter.startDiscovery();
-    }
+    public int deviceType = 0;
+    public static String driverName = "";
+    Activity activity = null;
+    boolean[] jsonarray;
 
     public BluetoothService() {
 
     }
 
-    /**
-     * 添加已绑定蓝牙设备到ListView
-     */
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        CustomApplication app = (CustomApplication) getApplication();
+        this.activity = app.getinstance();
+        openBlue();
+
+    }
+
+    public BluetoothService(Context cet, ListView on, ListView bin) {
+        this.context = cet;
+        unbondDevicesListView = on;
+        bondDevicesListView = bin;
+        unbondDevices = new ArrayList<BluetoothDevice>();
+        bondDevices = new ArrayList<BluetoothDevice>();
+        initIntentFilter();
+        searchDevices();
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        try {
+            this.driverName = fileIO.getBlueTooth(context);
+        } catch (NullPointerException e) {
+            e.printStackTrace();
+        }
+        return START_NOT_STICKY;
+    }
+
+    @Override
+    public IBinder onBind(Intent intent) {
+        return null;
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        try {
+            activity.finish();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void clear() {
+        intent = null;
+        fileIO = null;
+        showTime = null;
+        blueconnt = null;
+        dervicebind = null;
+        device = null;
+        if (array != null) {
+            array.clear();
+            unbondDevices.clear();
+            bondDevices.clear();
+        }
+        bluetoothAdapter = null;
+    }
+
+    private void openBlue() {
+        bluetoothAdapter.enable();
+    }
+
+    public void searchDevices() {
+        bluetoothAdapter.cancelDiscovery();
+        bluetoothIs = true;
+        bluetoothAdapter.startDiscovery();
+    }
+
     private void addBondDevicesToListView() {
-        final ArrayList<HashMap<String, Object>> data = new ArrayList<HashMap<String, Object>>();
+        array = new ArrayList<>();
         int count = this.bondDevices.size();
         for (int i = 0; i < count; i++) {
-            HashMap<String, Object> map = new HashMap<String, Object>();
-            map.put("deviceName", this.bondDevices.get(i).getName());
-            data.add(map);
+            arrayMap = new ArrayMap<>();
+            arrayMap.put("deviceName", bondDevices.get(i).getName());
+            array.add(arrayMap);
         }
         String[] from = {"deviceName"};
         int[] to = {R.id.device_name};
-        SimpleAdapter simpleAdapter = new SimpleAdapter(this.context, data,
+        SimpleAdapter simpleAdapter = new SimpleAdapter(context, array,
                 R.layout.bonddevice_item, from, to);
-        // 把适配器装载到listView中
-        this.bondDevicesListView.setAdapter(simpleAdapter);
-        //点击事件
-        this.bondDevicesListView.setOnItemClickListener(new OnItemClickListener() {
-
+        bondDevicesListView.setAdapter(simpleAdapter);
+        bondDevicesListView.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> arg0, View arg1, int arg2, long arg3) {
                 if (utilsTools.isFastClick()) {
                     bluetoothAdapter.cancelDiscovery();
                     BluetoothDevice device = bondDevices.get(arg2);
-                    Intent intent = new Intent();
+                    intent = new Intent();
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
                     intent.setClassName(context,
                             "com.a91zsc.www.myapplication.view.PrintDataActivity");
                     intent.putExtra("deviceAddress", device.getAddress());
-                    intent.putExtra("activity","BluetoothActivity");
+                    intent.putExtra("activity", "BluetoothActivity");
                     toast.cancel();
-                    if(showTime.getAPNType(BluetoothActivity.context)){
-                        showText(bluetoothContent);
-                        context.startActivity(intent);
-                        onDestroy();
-                    }else {
+                    if (showTime.getAPNType(context)) {
+                        if (blueconnt.connect(context, device)) {
+                            context.startActivity(intent);
+                            context.stopService(new Intent(context, BluetoothService.class));
+                            showText("连接成功");
+                        }else {
+                            Toast.makeText(context,"连接失败请重试!",Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
                         showText(netWorkContent);
 
                     }
@@ -121,23 +177,19 @@ public class BluetoothService extends Service {
 
     }
 
-
-    /**
-     * 添加未绑定蓝牙设备到ListView
-     */
     private void addUnbondDevicesToListView() {
-        ArrayList<HashMap<String, Object>> data = new ArrayList<HashMap<String, Object>>();
+        array = new ArrayList<>();
         int count = this.unbondDevices.size();
         for (int i = 0; i < count; i++) {
-            HashMap<String, Object> map = new HashMap<String, Object>();
-            map.put("deviceName", this.unbondDevices.get(i).getName());
-            data.add(map);// 把item项的数据加到data中
+            arrayMap = new ArrayMap<>();
+            arrayMap.put("deviceName", unbondDevices.get(i).getName());
+            array.add(arrayMap);
         }
         String[] from = {"deviceName"};
         int[] to = {R.id.undevice_name};
-        SimpleAdapter simpleAdapter = new SimpleAdapter(this.context, data,
+        SimpleAdapter simpleAdapter = new SimpleAdapter(this.context, array,
                 R.layout.unbonddevice_item, from, to);
-        // 把适配器装载到listView中
+        // 把适配器装载到listView中想
         this.unbondDevicesListView.setAdapter(simpleAdapter);
 
         // 为每个item绑定监听，用于设备间的配对
@@ -149,147 +201,199 @@ public class BluetoothService extends Service {
                                             int arg2, long arg3) {
                         if (utilsTools.isFastClick()) {
                             try {
-                                Method createBondMethod = BluetoothDevice.class
-                                        .getMethod("createBond");
                                 bluetoothAdapter.cancelDiscovery();
-                                createBondMethod.invoke(unbondDevices.get(arg2));
-                                bondDevices.add(unbondDevices.get(arg2));
-                                unbondDevices.remove(arg2);
-                                addBondDevicesToListView();
-                                addUnbondDevicesToListView();
+                                dervicebind = unbondDevices.get(arg2);
+                                new Thread(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        try {
+                                            Method createBondMethod = BluetoothDevice.class.getMethod("createBond");
+                                            createBondMethod.invoke(dervicebind);
+                                        } catch (Exception e) {
+                                            e.printStackTrace();
+                                        }
+                                    }
+                                }).start();
                             } catch (Exception e) {
-                                Toast.makeText(context, "配对失败", Toast.LENGTH_SHORT)
-                                        .show();
+                                showText("配对失败");
                             }
                         }
                     }
                 });
     }
 
-
-    public BluetoothService(Context context, ListView unbondDevicesListView,
-                            ListView bondDevicesListView) {
-        this.context = context;
-        Log.e("1", "加载一次");
-        this.unbondDevicesListView = unbondDevicesListView;
-        this.bondDevicesListView = bondDevicesListView;
-        this.unbondDevices = new ArrayList<BluetoothDevice>();
-        this.bondDevices = new ArrayList<BluetoothDevice>();
-        this.searchDevices();
-        this.initIntentFilter();
+    private void showItem(BluetoothDevice dervicebind) {
+        bondDevices.add(dervicebind);
+        unbondDevices.remove(dervicebind);
+        addBondDevicesToListView();
+        addUnbondDevicesToListView();
     }
 
     private void initIntentFilter() {
-        // 设置广播信息过滤
         IntentFilter intentFilter = new IntentFilter();
-        //说明：蓝牙扫描时，扫描到任一远程蓝牙设备时，会发送此广播。
         intentFilter.addAction(BluetoothDevice.ACTION_FOUND);
-        //蓝牙扫描过程开始
         intentFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_STARTED);
-        //蓝牙扫描过程结束
         intentFilter.addAction(BluetoothAdapter.ACTION_DISCOVERY_FINISHED);
-        //蓝牙状态值发生改变
-//        intentFilter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        intentFilter.addAction(BluetoothDevice.ACTION_BOND_STATE_CHANGED);
+        intentFilter.setPriority(Integer.MAX_VALUE);
         context.registerReceiver(receiver, intentFilter);
     }
 
-
-    /**
-     * 添加未绑定蓝牙设备到list集合
-     *
-     * @param device
-     */
-    public void addUnbondDevices(BluetoothDevice device) {
-        if (!this.unbondDevices.contains(device)) {
-            this.unbondDevices.add(device);
+    private void addUnbondDevices(BluetoothDevice device) {
+        if (!unbondDevices.contains(device)) {
+            unbondDevices.add(device);
         }
     }
 
-    /**
-     * 添加已绑定蓝牙设备到list集合
-     *
-     * @param device
-     */
-    public void addBandDevices(BluetoothDevice device) {
-        if (AA) {
-            this.driverName = fileIO.getBlueTooth(context);
-            AA = false;
-        }
-        if (driverName != ""&&device.toString().equals(driverName)) {
-                bluetoothAdapter.cancelDiscovery();
-                intent = new Intent();
-                intent.setClassName(context,
-                        "com.a91zsc.www.myapplication.view.PrintDataActivity");
-                intent.putExtra("deviceAddress", device.getAddress());
-                intent.putExtra("activity","BluetoothActivity");
-                BB = true;
-                toast.cancel();
-                if(showTime.getAPNType(BluetoothActivity.context)){
-                    showText(bluetoothContent);
+    private void addBandDevices(BluetoothDevice device) {
+        if (device.toString().equals(driverName)) {
+            bluetoothAdapter.cancelDiscovery();
+            intent = new Intent();
+            intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_EXCLUDE_FROM_RECENTS);
+            intent.setClassName(context, "com.a91zsc.www.myapplication.view.PrintDataActivity");
+            intent.putExtra("deviceAddress", device.getAddress());
+            intent.putExtra("activity", "BluetoothActivity");
+            toast.cancel();
+            if (showTime.getAPNType(context)) {
+                showText("正在连接");
+                if (blueconnt.connect(context, device)) {
                     context.startActivity(intent);
-                    onDestroy();
+                    context.stopService(new Intent(context, BluetoothService.class));
                 }else {
-                    showText(netWorkContent);
+                    Toast.makeText(context,"连接失败请重试!",Toast.LENGTH_SHORT).show();
                 }
+            }
 
-        }else {
-            if (!this.bondDevices.contains(device)) {
-                this.bondDevices.add(device);
+        } else {
+            if (!bondDevices.contains(device)) {
+                bondDevices.add(device);
+            }
+
+
+        }
+    }
+
+    public void storageID(String id) {
+        jsonArrayType.put("id", id);
+        jsonArrayId.add(jsonArrayType);
+
+    }
+
+    public void getTypeData(JSONArray choice, JSONArray local,int lenght) {
+        if (jsonArrayId != null) {
+            jsonArrayType.clear();
+        }
+        jsonArrayId = new JSONArray();
+        for (int i = 0; i < choice.size(); i++) {
+            JSONObject choiceTyep = choice.getJSONObject(i);
+            String type = choiceTyep.getString("type");
+            for (int o = 0; o < local.size(); o++) {
+                JSONObject localType = local.getJSONObject(o);
+                if (type.equals(localType.getString("type"))) {
+                    storageID(localType.getString("id"));
+                    break;
+                }
             }
         }
+        if(!jsonArrayId.toString().equals("[]") || lenght==jsonArrayId.size()){
+            fileIO.whilteShopType(context, jsonArrayId.toString());
+        }
     }
 
-    public void showText(String text){
-        Toast.makeText(BluetoothActivity.context,text,Toast.LENGTH_SHORT).show();
+
+    public void whilteIsText(boolean[] jsonarraydata) {
+        jsonarray = jsonarraydata;
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                JSONArray json = new JSONArray();
+                JSONObject jsonobject = new JSONObject();
+                for (int i = 0; i < jsonarray.length; i++) {
+                    if (jsonarray[i]) {
+                        jsonobject.put("choice", "1");
+                        json.add(jsonobject);
+                    } else {
+                        jsonobject.put("choice", "0");
+                        json.add(jsonobject);
+                    }
+                }
+                fileIO.whilteIsText(context, json.toString());
+            }
+        }).start();
+
     }
 
-    /**
-     * 蓝牙广播接收器
-     */
-    public BroadcastReceiver receiver = new BroadcastReceiver() {
+    private void showText(String text) {
+        Toast.makeText(context, text, Toast.LENGTH_SHORT).show();
+    }
+
+    private void showBluetooth(BluetoothDevice device) {
+        addBandDevices(device);
+        addBondDevicesToListView();
+    }
+
+    private void showBluetoothon(BluetoothDevice device) {
+        addUnbondDevices(device);
+        addUnbondDevicesToListView();
+    }
+
+    private BroadcastReceiver receiver = new BroadcastReceiver() {
         @Override
         public void onReceive(final Context context, final Intent intent) {
             action = intent.getAction();
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-
-
-                    if (BluetoothAdapter.ACTION_DISCOVERY_STARTED.equals(action)) {
-                        if (aboolean) {
-                            Message msg = new Message();
-                            msg.what = SHOW;
-                            msg.obj = "";
-                            handler.sendMessage(msg);
-                        }
-                    } else if (BluetoothDevice.ACTION_FOUND.equals(action)) {
-                        BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                        int deviceType = device.getBluetoothClass().getMajorDeviceClass();
-                        if (Integer.toString(deviceType).equals("1536")) {
-                            if (device.getBondState() == BluetoothDevice.BOND_BONDED) {
+                    switch (action) {
+                        case BluetoothAdapter.ACTION_DISCOVERY_STARTED:
+                            if (bluetoothIs) {
                                 Message msg = new Message();
-                                msg.what = BIND;
-                                msg.obj = device;
+                                msg.what = SHOW;
+                                msg.obj = "";
                                 handler.sendMessage(msg);
-                            } else {
-                                Message msg = new Message();
-                                msg.what = ONBIND;
-                                msg.obj = device;
-                                handler.sendMessage(msg);
-
                             }
-                        }
-                    } else {
-                        if (BB) {
-                            BB = false;
+                            break;
+                        case BluetoothDevice.ACTION_FOUND:
+                            try {
+                                device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+                                deviceType = device.getBluetoothClass().getMajorDeviceClass();
+                            } catch (Exception e) {
+                                e.printStackTrace();
+                            }
+
+                            if (deviceType != 512 && deviceType != 256) {
+                                if (device.getBondState() == BluetoothDevice.BOND_BONDED) {
+                                    Message msg = new Message();
+                                    msg.what = BIND;
+                                    msg.obj = device;
+                                    handler.sendMessage(msg);
+                                } else {
+                                    Message msg = new Message();
+                                    msg.what = ONBIND;
+                                    msg.obj = device;
+                                    handler.sendMessage(msg);
+                                }
+                            }
+                            break;
+                        case BluetoothDevice.ACTION_BOND_STATE_CHANGED:
+                            if (dervicebind.getBondState() == BluetoothDevice.BOND_BONDED) {
+                                Message msg = new Message();
+                                msg.what = CREATEBIND;
+                                msg.obj = dervicebind;
+                                handler.sendMessage(msg);
+                            }
+                            break;
+                        case BluetoothDevice.ACTION_ACL_DISCONNECTED:
                             bluetoothAdapter.cancelDiscovery();
-                            aboolean = true;
-                        }
+                            bluetoothIs = true;
+                            break;
+
                     }
                 }
             }).start();
         }
     };
+
 
     Handler handler = new Handler() {
         @Override
@@ -297,45 +401,25 @@ public class BluetoothService extends Service {
             super.handleMessage(msg);
             switch (msg.what) {
                 case BIND:
-                    BluetoothDevice dervicebind = bluetoothAdapter.getRemoteDevice(msg.obj + "");
+                    dervicebind = bluetoothAdapter.getRemoteDevice(msg.obj + "");
                     showBluetooth(dervicebind);
                     break;
                 case ONBIND:
-                    BluetoothDevice derviceonbind = bluetoothAdapter.getRemoteDevice(msg.obj + "");
-                    showBluetoothon(derviceonbind);
+                    dervicebind = bluetoothAdapter.getRemoteDevice(msg.obj + "");
+                    showBluetoothon(dervicebind);
                     break;
                 case SHOW:
                     toast = Toast.makeText(context, "正在搜索", Toast.LENGTH_LONG);
                     showTime.showToast(toast, 5000);
-                    aboolean = false;
+                    bluetoothIs = false;
+                    break;
+                case CREATEBIND:
+                    dervicebind = bluetoothAdapter.getRemoteDevice(msg.obj + "");
+                    showItem(dervicebind);
                     break;
                 default:
                     break;
-
             }
         }
     };
-
-    public void showBluetooth(BluetoothDevice device) {
-        addBandDevices(device);
-        addBondDevicesToListView();
-    }
-
-    public void showBluetoothon(BluetoothDevice device) {
-        addUnbondDevices(device);
-        addUnbondDevicesToListView();
-    }
-
-
-    @Nullable
-    @Override
-    public IBinder onBind(Intent intent) {
-        return null;
-    }
-
-    @Override
-    public void onDestroy() {
-        super.onDestroy();
-        context.unregisterReceiver(receiver);
-    }
 }

@@ -1,226 +1,188 @@
 package com.a91zsc.www.myapplication.view;
 
-import android.app.ActivityManager;
 import android.app.AlertDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
-import android.bluetooth.BluetoothProfile;
 import android.graphics.Color;
-import android.net.NetworkInfo.State;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.content.res.Configuration;
-import android.media.MediaPlayer;
 import android.os.Bundle;
-import android.support.v7.app.ActionBar;
-import android.text.Layout;
+import android.provider.Settings;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
-import android.view.MotionEvent;
 import android.view.ViewGroup;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.PopupWindow;
 import android.widget.TextView;
 
-import butterknife.Bind;
-import butterknife.ButterKnife;
-import de.tavendo.autobahn.WebSocketConnection;
-import de.tavendo.autobahn.WebSocketException;
-import de.tavendo.autobahn.WebSocketHandler;
-import okhttp3.FormBody;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
-
-import android.os.Handler;
-import android.os.Message;
 import android.view.View;
 import android.widget.Toast;
 
 import com.a91zsc.www.myapplication.R;
-import com.a91zsc.www.myapplication.action.PrintDataAction;
+import com.a91zsc.www.myapplication.application.CustomApplication;
+import com.a91zsc.www.myapplication.application.IntentConnection;
 import com.a91zsc.www.myapplication.service.PrintDataService;
 import com.a91zsc.www.myapplication.util.printUtils;
-import com.a91zsc.www.myapplication.util.showTime;
 import com.a91zsc.www.myapplication.util.toolsFileIO;
-import com.a91zsc.www.myapplication.util.utilsTools;
 
 import android.support.v7.app.AppCompatActivity;
-
-import net.sf.json.JSONArray;
-import net.sf.json.JSONObject;
-
-import java.io.IOException;
-import java.io.InterruptedIOException;
-import java.net.InetSocketAddress;
-import java.net.Socket;
-import java.nio.charset.Charset;
-import java.sql.Date;
-import java.text.SimpleDateFormat;
 
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 
-import static android.R.attr.action;
-import static android.R.attr.filter;
+import net.sf.json.JSONArray;
+
+import java.util.List;
+
 
 public class PrintDataActivity extends AppCompatActivity implements View.OnClickListener {
+    private BluetoothAdapter bluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+    public static TextView connectState;
+    public Context context;
+    public Button saveSet, send, command;
+    public static boolean isconnection = false;
 
-
-    public static Context context;
-    public TextView connectState = null;
-    PrintDataAction printDataAction;
     PrintDataService printDataService;
-    private static final String DYNAMICACTION = "com.www.printService";
+    BluetoothDevice dervicebind = null;
     private toolsFileIO fileIO = new toolsFileIO();
     private PopupWindow mPopWindow;
-    public static int shulian = 1;
-    public static Button saveSet;
-    public static Button send;
-    private Button command;
+    printUtils printutils = new printUtils();
     private NetworkChangeReceiver networkChangeReceiver;
-    private IntentFilter intentFilter;
     public static String BluetoothIntent = null;
-
-    /**
-     * 打印三列时，第一列汉字最多显示几个文字
-     */
-
+    public static String name;
+    public static int shuliang = 1;
 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         this.setContentView(R.layout.printdata_layout);
         getSupportActionBar().hide();
-        this.context = this;
-        startService(new Intent(context, PrintDataService.class));
-        this.connectState = (TextView) this.findViewById(R.id.connect_state);
-        send = (Button) this.findViewById(R.id.send);
-        command = (Button) this.findViewById(R.id.wsStart);
+        context = getApplicationContext();
+        connectState = (TextView) findViewById(R.id.connect_state);
+        send = (Button) findViewById(R.id.send);
+        command = (Button) findViewById(R.id.wsStart);
         saveSet = (Button) findViewById(R.id.SetData);
-        printDataAction = new PrintDataAction(this.context, this.getDeviceAddress(), connectState);
+        getDeviceAddress();
+        viewnetworkstatus();
+        printDataService = new PrintDataService(context, BluetoothIntent);
         send.setOnClickListener(this);
         command.setOnClickListener(this);
         saveSet.setOnClickListener(this);
-        send.setEnabled(false);
-        saveSet.setEnabled(false);
-        testWeb();
-        printDataService = printDataAction.getService();
-        getData(context);
+        startService(new Intent(context, PrintDataService.class));
+        smallticketsetup(context);
+        Settings.System.getInt(getContentResolver(), Settings.System.WIFI_SLEEP_POLICY,
+                Settings.System.WIFI_SLEEP_POLICY_DEFAULT);
+        Settings.System.putInt(getContentResolver(), Settings.System.WIFI_SLEEP_POLICY,
+                Settings.System.WIFI_SLEEP_POLICY_NEVER);
     }
 
-    //
-//    @Override
-//    protected void onPause() {
-//        super.onPause();
-//        //有可能在执行完onPause或onStop后,系统资源紧张将Activity杀死,所以有必要在此保存持久数据
-//    }
-//    @Override
-//    protected void onStop() {
-//        super.onStop();
-//
-//    }
-    public void testWeb() {
-        intentFilter = new IntentFilter();
-        intentFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
-//        intentFilter.addAction(Intent.ACTION_SCREEN_OFF);
-//        intentFilter.addAction(Intent.ACTION_SCREEN_ON);
-//        intentFilter.addAction(Intent.ACTION_USER_PRESENT);
-        intentFilter.addAction(DYNAMICACTION);
-        networkChangeReceiver = new NetworkChangeReceiver();
-        registerReceiver(networkChangeReceiver, intentFilter);
-    }
-
-    public String actionIntent = null;
-    /**
-     * 服务器断开重连
-     */
-    class NetworkChangeReceiver extends BroadcastReceiver {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String action = intent.getAction();
-            ConnectivityManager connectionManager = (ConnectivityManager)
-                    getSystemService(Context.CONNECTIVITY_SERVICE);
-            NetworkInfo networkInfo = connectionManager.getActiveNetworkInfo();
-            Log.e("Service",action+"");
-            if(action.equals(DYNAMICACTION)){
-                actionIntent = action;
-            }
-            if (networkInfo != null && networkInfo.isAvailable()) {
-                Log.e("actionIntent",actionIntent+"");
-                if (actionIntent != null){
-                    printDataService.dataProcessing();
-                    actionIntent = null;
-                    Log.e("Service","重连成功");
-                }else if(!isServiceRunning()){
-                    startService(new Intent(context, PrintDataService.class));
-                }
-            }
-        }
-    }
-
-//    public void send(){
-//        IntentFilter filter_system = new IntentFilter();
-//        filter_system.addAction(DYNAMICACTION);
-//        registerReceiver(systemReceiver, filter_system);
-//    }
-//
-//    private BroadcastReceiver systemReceiver = new BroadcastReceiver(){
-//        @Override
-//        public void onReceive(Context context, Intent intent){
-//            if (intent.getAction().equals(DYNAMICACTION)){
-//            }
-//        }
-//    };
-
-
-
-    private boolean isServiceRunning() {
-        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
-        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
-            if ("com.a91zsc.www.myapplication.service.PrintDataService".equals(service.service.getClassName())) {
-                return true;
-            }
-        }
-        return false;
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
     }
 
     @Override
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.wsStart:
-                printDataService.sendTextMassage();
+                printDataService.serviceTest();
+                break;
+            case R.id.send:
+                printDataService.printTest();
                 break;
             case R.id.SetData:
                 showPopupWindow();
                 break;
-            case R.id.send:
-//                printDataService.getAPNType(context);
-//                isServiceRunning();
-                printDataService.sendInfo();
-//                printDataService.onDestroy();
+            case R.id.largeLabe:
+                mPopWindow.dismiss();
                 break;
             default:
                 break;
         }
     }
-    public void getData(Context context) {
-        if (fileIO.getSetData(context) > 1) {
-            this.shulian = fileIO.getSetData(context);
-            saveSet.setText("小票设置  " + shulian);
+
+    @Override
+    public void onTrimMemory(int level) {
+        super.onTrimMemory(level);
+        switch (level) {
+            case TRIM_MEMORY_MODERATE:
+                printDataService.cleatr();
+                Runtime.getRuntime().gc();
+                break;
+            case TRIM_MEMORY_RUNNING_LOW:
+                printDataService.cleatr();
+                Runtime.getRuntime().gc();
+                break;
+            default:
+                break;
         }
     }
 
+    @Override
+    protected void onPause() {
+        super.onPause();
+    }
+
+    private void viewnetworkstatus() {
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction("android.net.conn.CONNECTIVITY_CHANGE");
+        networkChangeReceiver = new NetworkChangeReceiver();
+        registerReceiver(networkChangeReceiver, intentFilter);
+    }
+
+    private void setShowText(int i, String string) {
+        if (i == 1) {
+            connectState.setText(string);
+            connectState.setTextColor(Color.parseColor("#FF4500"));
+        } else {
+            this.connectState.setText(dervicebind.getName() + string);
+            connectState.setTextColor(Color.parseColor("#FFFFFF"));
+        }
+    }
+
+    private void smallticketsetup(Context context) {
+        shuliang = fileIO.getSetData(context);
+        if (shuliang > 1) {
+            saveSet.setText("小票设置" + shuliang);
+        }
+    }
+
+    private class NetworkChangeReceiver extends BroadcastReceiver {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            ConnectivityManager connectionManager = (ConnectivityManager)
+                    getSystemService(Context.CONNECTIVITY_SERVICE);
+            NetworkInfo networkInfo = connectionManager.getActiveNetworkInfo();
+            Log.e("",IntentConnection.network+"");
+            if (IntentConnection.network!=0) {
+                Log.e("服务器断开广播",""+IntentConnection.network);
+                if (networkInfo == null || printUtils.webSocketConnection == null) {
+                    setShowText(1, "服务器异常,请查看网络!");
+                    setShowButton(false);
+                }
+                if (networkInfo != null && networkInfo.isAvailable()) {
+                    if (printUtils.webSocketConnection==null && BluetoothIntent != null) {
+                        Log.e("服务器重连广播",""+IntentConnection.network);
+                        setShowText(2, " 连接成功!");
+                        printDataService.dataProcessing();
+                        setShowButton(true);
+                        IntentConnection.network = 0;
+                    }
+                }
+
+            }
+        }
+    }
+
+    private void setShowButton(Boolean isButton) {
+        send.setEnabled(isButton);
+        command.setEnabled(isButton);
+
+    }
 
     private void showPopupWindow() {
         final View contentView = LayoutInflater.from(PrintDataActivity.this).inflate(R.layout.popupwindow_item, null);
@@ -250,10 +212,10 @@ public class PrintDataActivity extends AppCompatActivity implements View.OnClick
                     if (data > 10 || data == 0) {
                         Toast.makeText(context, "保存失败！数字大小在1-10范围内。", Toast.LENGTH_SHORT).show();
                     } else {
-                        shulian = data;
+                        shuliang = data;
                         fileIO.putSetData(context, data);
                         if (!(data == 1)) {
-                            saveSet.setText("小票设置  " + shulian);
+                            saveSet.setText("小票设置  " + data);
                         } else {
                             saveSet.setText("小票设置");
                         }
@@ -268,68 +230,57 @@ public class PrintDataActivity extends AppCompatActivity implements View.OnClick
         mPopWindow.showAsDropDown(connectState);
     }
 
-    /**
-     * 获得从上一个Activity传来的蓝牙地址
-     *
-     * @return String
-     */
-    public String getDeviceAddress() {
+    private void getDeviceAddress() {
         Intent intent = this.getIntent();
+        String Bluetooth = intent.getStringExtra("deviceAddress");
+        this.dervicebind = bluetoothAdapter.getRemoteDevice(Bluetooth);
         this.BluetoothIntent = intent.getStringExtra("activity");
-        if (intent != null) {
-            String Bluetooth = intent.getStringExtra("deviceAddress");
-            return Bluetooth;
-        } else {
-            return null;
-        }
+        name = dervicebind.getName();
+        connectState.setText(name + "连接成功");
     }
 
-    /**
-     * activity
-     */
     @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        unregisterReceiver(networkChangeReceiver);
-    }
-
-
-
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_BACK) {
             AlertDialog isExit = new AlertDialog.Builder(this).create();
-            isExit.setMessage("确认退出?退出将导致连接中断！");
+            isExit.setMessage("确认退出将断开服务器!");
             isExit.setButton("确定", listener);
             isExit.setButton2("取消", listener);
             isExit.show();
-
         }
-
         return false;
-
     }
 
-    /**
-     * 监听对话框里面的button点击事件
-     * 断开服务器 连接 清除sharedPreferences数据
-     */
     DialogInterface.OnClickListener listener = new DialogInterface.OnClickListener() {
         public void onClick(DialogInterface dialog, int which) {
             switch (which) {
-                case AlertDialog.BUTTON_POSITIVE:// "确认"按钮退出程序
-                    Intent intent = new Intent(PrintDataActivity.this, BluetoothActivity.class);
+                case AlertDialog.BUTTON_POSITIVE:
+                    IntentConnection.network = 0;
+                    BluetoothIntent = null;
                     fileIO.putBlueToothDrive(context, "");
+                    printutils.closeSocket(context);
+                    unregisterReceiver(networkChangeReceiver);
+                    stopService(new Intent(context, PrintDataService.class));
+                    Intent intent = new Intent(context, BluetoothActivity.class);
                     startActivity(intent);
                     finish();
-                    PrintDataActivity.BluetoothIntent = null;
-                    printDataService.onDestroy();
                     break;
-                case AlertDialog.BUTTON_NEGATIVE:// "取消"第二个按钮取消对话框
+                case AlertDialog.BUTTON_NEGATIVE:
                     break;
                 default:
                     break;
             }
         }
     };
+//    private boolean isServiceRunning() {
+//        ActivityManager manager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+//        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+//            if ("com.a91zsc.www.myapplication.service.PrintDataService".equals(service.service.getClassName())) {
+//                return true;
+//            }
+//        }
+//        return false;
+//    }
+
 }
 

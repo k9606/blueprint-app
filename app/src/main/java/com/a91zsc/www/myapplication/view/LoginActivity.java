@@ -29,10 +29,9 @@ import static android.os.SystemClock.sleep;
 import static com.a91zsc.www.myapplication.string.staticBluetoothData.userLoginURLVerification;
 import static com.a91zsc.www.myapplication.string.staticBluetoothData.usernameOrPassworlderror;
 
-public class LoginActivity extends AppCompatActivity implements View.OnClickListener{
+public class LoginActivity extends AppCompatActivity implements View.OnClickListener {
 
-    private EditText accountEdit;
-    private EditText passwordEdit;
+    private EditText accountEdit, passwordEdit;
     private Button login;
     private OkHttpClient client;
     public Context context;
@@ -40,80 +39,86 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
     private String responseData = null;
     private static final String CODELOGIN = "oo";
     private static final String USER = "user";
-    Intent intent = new Intent();
+    Intent intent;
     private utilsTools utilsTools = new utilsTools();
+    private toolsFileIO tlfo = new toolsFileIO();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        versionUser();
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
+        if ((getIntent().getFlags() & Intent.FLAG_ACTIVITY_BROUGHT_TO_FRONT) != 0) {
+            finish();
+            return;
+        }
+        context  = getApplicationContext();
+        versionUser();
         getSupportActionBar().hide();
         accountEdit = (EditText) findViewById(R.id.account);
         passwordEdit = (EditText) findViewById(R.id.password);
         login = (Button) findViewById(R.id.login);
         login.setOnClickListener(this);
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.login:
+                sendVersionUser();
+                break;
+            default:
+                System.out.println("default");
+                break;
+
         }
-        @Override
-        public void onClick(View v){
-            switch (v.getId()){
-                case R.id.login:
-                    sendVersionUser();
-                    break;
-                default:
-                    System.out.println("default");
-                    break;
 
-            }
+    }
 
+    public void sendVersionUser() {
+        if (utilsTools.isFastClick()) {
+            final String account = accountEdit.getText().toString();
+            final String password = passwordEdit.getText().toString();
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        client = new OkHttpClient();
+                        RequestBody requestBody = new FormBody.Builder()
+                                .add("account", account)
+                                .add("password", password)
+                                .build();
+                        Request request = new Request.Builder()
+                                .url(userLoginURLVerification)
+                                .post(requestBody)
+                                .build();
+                        response = client.newCall(request).execute();
+                        responseData = response.body().string();
+                        if (responseData.equals(CODELOGIN)) {
+                            tlfo.toolsFileIO(context, account, password);
+                            Intent intent = new Intent(LoginActivity.this, BluetoothActivity.class);
+                            startActivity(intent);
+                            finish();
+                        } else {
+                            startFunction();
+                        }
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
         }
-    public void sendVersionUser(){
-                             if (utilsTools.isFastClick()) {
-                                 final String account = accountEdit.getText().toString();
-                                 final String password = passwordEdit.getText().toString();
-                                 new Thread(new Runnable() {
-                                     @Override
-                                     public void run() {
-                                         try {
-                                             client = new OkHttpClient();
-                                             RequestBody requestBody = new FormBody.Builder()
-                                                     .add("account", account)
-                                                     .add("password", password)
-                                                     .build();
-                                             Request request = new Request.Builder()
-                                                     .url(userLoginURLVerification)
-                                                     .post(requestBody)
-                                                     .build();
-                                             response = client.newCall(request).execute();
-                                             responseData = response.body().string();
-                                             if (responseData.equals(CODELOGIN)) {
-                                                 SharedPreferences.Editor editor1 = getSharedPreferences(USER, MODE_PRIVATE).edit();
-                                                 editor1.putString("acc", account);
-                                                 editor1.putString("password", password);
-                                                 editor1.apply();
-                                                 Intent intent = new Intent(LoginActivity.this, BluetoothActivity.class);
-                                                 startActivity(intent);
-                                                 finish();
-                                             } else{
-                                                 startFunction();
-                                             }
+    }
 
-                                         } catch (Exception e) {
-                                             e.printStackTrace();
-                                         }
-                                     }
-                                 }).start();
-                             }
-                         }
-    public void versionUser(){
-        SharedPreferences pref1 = getSharedPreferences(USER, MODE_PRIVATE);
-        String account = pref1.getString("acc", "");
+    public void versionUser() {
+        String account = tlfo.getUserName(context);
         if (!(account == null || account.length() <= 0)) {
             intent = new Intent(LoginActivity.this, BluetoothActivity.class);
             startActivity(intent);
-            finish();
+            this.finish();
         }
     }
+
     public void startFunction() {
         runOnUiThread(new Runnable() {
             public void run() {
@@ -123,5 +128,8 @@ public class LoginActivity extends AppCompatActivity implements View.OnClickList
         });
     }
 
-
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+    }
 }

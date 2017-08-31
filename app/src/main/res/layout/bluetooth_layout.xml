@@ -1,9 +1,10 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              xmlns:app="http://schemas.android.com/apk/res-auto"
               xmlns:tools="http://schemas.android.com/tools"
               android:layout_width="match_parent"
               android:layout_height="match_parent"
-              tools:context="view.BluetoothActivity"
-              android:orientation="vertical">
+              android:orientation="vertical"
+              tools:context="view.BluetoothActivity">
 
     <LinearLayout
         android:id="@+id/ButtonView"
@@ -14,23 +15,43 @@
         android:gravity="center_vertical"
         >
 
-        <ImageView
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="match_parent"
             android:layout_weight="2"
-            android:scaleType="center"
-            android:src="@mipmap/transparent"
-            />
+            android:orientation="vertical"
+
+            >
+
+            <ImageButton
+                android:id="@+id/pinUser"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@color/blue"
+                android:paddingLeft="5dp"
+                android:paddingTop="10dp"
+                android:src="@mipmap/menu_one"
+                />
+        </LinearLayout>
+
+
+        <!--<ImageView-->
+        <!--android:layout_width="match_parent"-->
+        <!--android:layout_height="wrap_content"-->
+        <!--android:layout_weight="2"-->
+        <!--android:scaleType="center"-->
+        <!--android:src="@mipmap/transparent"-->
+        <!--/>-->
 
         <Button
             android:id="@+id/searchDevices"
             android:layout_width="match_parent"
             android:layout_height="40dp"
-            android:layout_weight="1"
             android:layout_marginTop="5dp"
-            android:textSize="17sp"
+            android:layout_weight="1"
             android:background="@drawable/buttonstyle_b"
-            android:text="搜索设备"/>
+            android:text="搜索设备"
+            android:textSize="17sp"/>
 
         <ImageView
             android:layout_width="match_parent"
@@ -39,6 +60,7 @@
             android:scaleType="center"
             android:src="@mipmap/transparent"
             />
+
     </LinearLayout>
 
     <LinearLayout
@@ -75,13 +97,13 @@
                 <Button
                     android:layout_width="match_parent"
                     android:layout_height="30dp"
-                    android:layout_weight="1"
                     android:layout_marginTop="10dp"
+                    android:layout_weight="1"
                     android:background="@drawable/buttonstyle_birds"
                     android:enabled="false"
-                    android:textSize="15sp"
                     android:text="未配对设备"
-                    android:textColor="@color/white"/>
+                    android:textColor="@color/white"
+                    android:textSize="15sp"/>
 
                 <ImageView
                     android:layout_width="match_parent"
@@ -144,10 +166,10 @@
                     android:layout_height="30dp"
                     android:layout_weight="1"
                     android:background="@drawable/buttonstyle_birds"
-                    android:text="已配对设备"
                     android:enabled="false"
-                    android:textSize="15sp"
-                    android:textColor="@color/white"/>
+                    android:text="已配对设备"
+                    android:textColor="@color/white"
+                    android:textSize="15sp"/>
 
                 <ImageView
                     android:layout_width="match_parent"
@@ -191,9 +213,9 @@
             android:id="@+id/deition"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:textSize="12sp"
+            android:background="@drawable/buttoe_edition"
             android:textColor="@color/grayremove"
-            android:background="@drawable/buttoe_edition"/>
+            android:textSize="12sp"/>
     </LinearLayout>
 
 </LinearLayout>
